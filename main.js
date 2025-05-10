@@ -1,6 +1,6 @@
 import * as DomElements from './dom-elements.js';
 import * as AppState from './state.js';
-import * as Constants from './constants.js'; // For default values
+import * as Constants from './constants.js';
 import * as UIHelpers from './ui-helpers.js';
 import * as SettingsManager from './settings-manager.js';
 import { startPlayback, stopPlayback } from './playback-scheduler.js';
@@ -42,8 +42,8 @@ document.addEventListener('keydown', (event) => {
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to restore all settings to their defaults?")) {
-        UIHelpers.applySettingsToUI(Constants.defaultSettings); // Use imported defaultSettings
-        updateKeyboardRangeFromSliders(); // Explicitly update after restoring
+        UIHelpers.applySettingsToUI(Constants.defaultSettings);
+        updateKeyboardRangeFromSliders();
     }
 });
 
@@ -51,29 +51,36 @@ DomElements.saveSettingsButton.addEventListener('click', SettingsManager.saveSet
 DomElements.loadSettingsButton.addEventListener('click', () => DomElements.loadSettingsFile.click());
 DomElements.loadSettingsFile.addEventListener('change', (event) => {
     SettingsManager.loadSettings(event);
-    setTimeout(updateKeyboardRangeFromSliders, 50); // Ensure UIHelpers.applySettingsToUI has finished
+    setTimeout(updateKeyboardRangeFromSliders, 50);
 });
 
-
 function updateKeyboardRangeFromSliders() {
-    const startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    let startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
+    
+    // Hardcoded min/max for the start slider (C2 to C5-ish, ensuring range fits within B5)
+    const sliderMin = Constants.MIDI_C2; // 36
+    const sliderMax = Constants.MIDI_B5 - (length -1); // Max start so that range ends at B5 or lower
+                                                       // e.g. B5 - (12-1) = 83 - 11 = 72 (C5)
+                                                       // e.g. B5 - (24-1) = 83 - 23 = 60 (C4)
+    
+    // Dynamically set the max attribute of the start slider based on current length
+    DomElements.rangeStartNoteSlider.max = sliderMax;
+
+    // Clamp startMidi to the (potentially new) dynamic max of the slider
+    if (startMidi > sliderMax) {
+        startMidi = sliderMax;
+        DomElements.rangeStartNoteSlider.value = startMidi;
+    }
+    // And ensure it doesn't go below its hardcoded min
+    if (startMidi < sliderMin) {
+        startMidi = sliderMin;
+        DomElements.rangeStartNoteSlider.value = startMidi;
+    }
+    
     const endMidi = startMidi + length - 1;
 
-    // Adjust max of start slider dynamically to prevent invalid combinations
-    DomElements.rangeStartNoteSlider.max = Constants.MIDI_C8 - (length - 1);
-    // If current startMidi is now too high, adjust it
-    if (startMidi > parseInt(DomElements.rangeStartNoteSlider.max, 10)) {
-        DomElements.rangeStartNoteSlider.value = DomElements.rangeStartNoteSlider.max;
-        // Recalculate startMidi and endMidi if it was adjusted
-        const adjustedStartMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
-        UIHelpers.updatePitchRangeDisplay(); // Update text display for sliders
-        KeyboardUI.highlightRangeOnKeyboard(adjustedStartMidi, adjustedStartMidi + length - 1);
-        return; // Exit after adjustment and update
-    }
-
-
-    UIHelpers.updatePitchRangeDisplay(); // Update text display for sliders
+    UIHelpers.updatePitchRangeDisplay();
     KeyboardUI.highlightRangeOnKeyboard(startMidi, endMidi);
 }
 
@@ -84,16 +91,18 @@ if (DomElements.rangeLengthSlider) {
     DomElements.rangeLengthSlider.addEventListener('input', updateKeyboardRangeFromSliders);
 }
 
-
-// --- DOMContentLoaded (Initial Setup) ---
 document.addEventListener('DOMContentLoaded', () => {
-    UIHelpers.applySettingsToUI(Constants.defaultSettings); // Use imported defaultSettings
+    // Set initial max for rangeStartNoteSlider based on default length
+    const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
+    DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (initialLength - 1);
+
+    UIHelpers.applySettingsToUI(Constants.defaultSettings);
     DomElements.prevChordDisplay.textContent = "Prev: --";
     DomElements.currentChordDisplay.textContent = "Playing: --";
     DomElements.nextChordDisplay.textContent = "Next: --";
 
-    KeyboardUI.initKeyboard();
-    updateKeyboardRangeFromSliders(); // Initial range highlight
+    KeyboardUI.initKeyboard(); // This will now generate C2-B5
+    updateKeyboardRangeFromSliders(); // Highlight default range C2-B3
 
     function initAudioContext() {
         if (AppState.audioCtx.state === 'suspended') {

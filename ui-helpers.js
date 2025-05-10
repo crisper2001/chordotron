@@ -2,10 +2,10 @@ import * as DomElements from './dom-elements.js';
 import * as Constants from './constants.js';
 import * as AppState from './state.js';
 import { stopPlayback } from './playback-scheduler.js';
-import * as MusicTheory from './music-theory.js'; // For midiToNoteNameWithOctave
+import * as MusicTheory from './music-theory.js';
 
 function clearInputErrorStates() {
-    // No direct text input errors for sliders in this model, but could be used if validation added
+    // Not currently used for sliders
 }
 
 export function setControlsDisabled(disabled) {
@@ -22,7 +22,6 @@ export function setupSliderListeners() {
         { el: DomElements.sustainSlider, span: DomElements.sustainValueSpan, isFloat: true },
         { el: DomElements.releaseSlider, span: DomElements.releaseValueSpan, isFloat: true },
         { el: DomElements.metronomeVolumeSlider, span: DomElements.metronomeVolumeValueSpan, isFloat: true },
-        // Pitch Range sliders are handled separately due to more complex update logic
     ];
     sliders.forEach(({el, span, isFloat}) => {
         if (!el) return; 
@@ -36,6 +35,9 @@ export function setupSliderListeners() {
 export function updatePitchRangeDisplay() {
     const startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
+    
+    // The dynamic max of rangeStartNoteSlider is now handled in main.js updateKeyboardRangeFromSliders
+    // Here, we just read the current values and display them.
     const endMidi = startMidi + length - 1;
 
     const startNoteName = MusicTheory.midiToNoteNameWithOctave(startMidi) || 'N/A';
@@ -45,7 +47,6 @@ export function updatePitchRangeDisplay() {
     if (DomElements.rangeLengthValueSpan) DomElements.rangeLengthValueSpan.textContent = length;
     if (DomElements.currentRangeDisplaySpan) DomElements.currentRangeDisplaySpan.textContent = `${startNoteName} - ${endNoteName}`;
 }
-
 
 export function getBeatsPerMeasure() {
     const timeSig = DomElements.timeSignatureSelect.value;
@@ -160,9 +161,15 @@ export function applySettingsToUI(settings) {
     
     DomElements.rangeStartNoteSlider.value = settings.rangeStartMidi ?? Constants.DEFAULT_MIN_MIDI_RANGE_START;
     DomElements.rangeLengthSlider.value = settings.rangeLength ?? Constants.DEFAULT_RANGE_LENGTH;
-    // Adjust max of start slider based on length
+    
+    // Set the max of rangeStartNoteSlider based on the loaded/default length
     const currentLength = parseInt(DomElements.rangeLengthSlider.value, 10);
-    DomElements.rangeStartNoteSlider.max = Constants.MIDI_C8 - (currentLength - 1);
+    DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (currentLength - 1);
+    // Ensure the loaded start value isn't now out of this dynamic max
+    if (parseInt(DomElements.rangeStartNoteSlider.value, 10) > parseInt(DomElements.rangeStartNoteSlider.max, 10) ) {
+        DomElements.rangeStartNoteSlider.value = DomElements.rangeStartNoteSlider.max;
+    }
+
 
     updatePitchRangeDisplay(); // Update text displays for pitch range sliders
 
@@ -171,6 +178,6 @@ export function applySettingsToUI(settings) {
     DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
     DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
 
-    setupSliderListeners(); // For general sliders
+    setupSliderListeners();
     updateBeatIndicatorsVisibility(getBeatsPerMeasure());
 }

@@ -1,13 +1,17 @@
 import * as DomElements from './dom-elements.js';
 import * as MusicTheory from './music-theory.js';
-import { ALL_NOTE_NAMES, SEMITONES_IN_OCTAVE } from './constants.js';
+import { ALL_NOTE_NAMES, SEMITONES_IN_OCTAVE, MIDI_C2, MIDI_B5 } from './constants.js'; // Import new constants
 
 let keyElementsMap = {}; 
 let currentlyActiveMidiNotes = [];
 let currentRangeHighlighted = { min: null, max: null };
 
-const DEFAULT_NUM_OCTAVES = 3;
-const DEFAULT_START_OCTAVE = 3; 
+// --- Keyboard Configuration ---
+// To display from C2 (MIDI 36) up to B5 (MIDI 83):
+// Range is 83 - 36 = 47 semitones. This means we need 47/12 = ~3.9 octaves.
+// So, 4 octaves starting from C2 will cover C2, C3, C4, C5 up to B5.
+const DEFAULT_NUM_OCTAVES_DISPLAY = 4; 
+const DEFAULT_START_OCTAVE_DISPLAY = 2; // Visual keyboard starts at C2
 
 const BLACK_KEY_INFO = {
     1: { name: 'C#', offsetFactor: 0.60, widthFactor: 0.7 },
@@ -23,7 +27,6 @@ function generateKeyboard(container, numOctaves, startOctaveNum) {
     currentlyActiveMidiNotes = [];
     currentRangeHighlighted = { min: null, max: null };
 
-
     const startMidiNote = MusicTheory.noteNameToMidi(`C${startOctaveNum}`);
     if (startMidiNote === null) {
         console.error("Invalid start octave for keyboard generation:", startOctaveNum);
@@ -31,10 +34,14 @@ function generateKeyboard(container, numOctaves, startOctaveNum) {
     }
 
     let whiteKeyIndex = 0;
-    const whiteKeyWidth = 100 / (numOctaves * 7); 
+    const numWhiteKeys = numOctaves * 7;
+    const whiteKeyWidth = 100 / numWhiteKeys; 
 
     for (let i = 0; i < numOctaves * SEMITONES_IN_OCTAVE; i++) {
         const midiNote = startMidiNote + i;
+        // Stop generating if we exceed B5 (MIDI 83) or a practical upper limit like C6 (MIDI 84)
+        if (midiNote > MIDI_B5 + 1) break; 
+
         const noteIndexInOctave = midiNote % SEMITONES_IN_OCTAVE;
         const noteName = ALL_NOTE_NAMES[noteIndexInOctave];
         const octave = Math.floor(midiNote / SEMITONES_IN_OCTAVE) -1; 
@@ -61,8 +68,12 @@ function generateKeyboard(container, numOctaves, startOctaveNum) {
 
 export function initKeyboard() {
     if (DomElements.pianoKeyboardContainer) {
-        generateKeyboard(DomElements.pianoKeyboardContainer, DEFAULT_NUM_OCTAVES, DEFAULT_START_OCTAVE);
-        clearKeyboardRangeHighlight(); // Ensure no range highlight initially
+        generateKeyboard(
+            DomElements.pianoKeyboardContainer, 
+            DEFAULT_NUM_OCTAVES_DISPLAY, 
+            DEFAULT_START_OCTAVE_DISPLAY
+        );
+        clearKeyboardRangeHighlight(); 
     }
 }
 
@@ -94,11 +105,11 @@ export function clearKeyboardHighlights() {
 }
 
 export function highlightRangeOnKeyboard(minMidi, maxMidi) {
-    clearKeyboardRangeHighlight(); // Clear previous range highlight first
+    clearKeyboardRangeHighlight(); 
 
     if (minMidi === null || maxMidi === null || minMidi > maxMidi) {
         currentRangeHighlighted = { min: null, max: null };
-        return; // Invalid or no range to highlight
+        return; 
     }
     
     currentRangeHighlighted = { min: minMidi, max: maxMidi };
@@ -115,6 +126,8 @@ export function highlightRangeOnKeyboard(minMidi, maxMidi) {
 export function clearKeyboardRangeHighlight() {
     currentRangeHighlighted = { min: null, max: null };
     for (const midiNoteStr in keyElementsMap) {
-        keyElementsMap[midiNoteStr].classList.remove('in-range');
+        if (keyElementsMap[midiNoteStr]) { 
+            keyElementsMap[midiNoteStr].classList.remove('in-range');
+        }
     }
 }

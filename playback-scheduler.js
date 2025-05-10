@@ -4,9 +4,9 @@ import * as MusicTheory from './music-theory.js';
 import * as AudioCore from './audio-core.js';
 import * as UIHelpers from './ui-helpers.js';
 import * as KeyboardUI from './keyboard-ui.js';
-import * as Constants from './constants.js'; // For MIDI constants
+import * as Constants from './constants.js';
 
-const REFERENCE_OCTAVE_FOR_PARSING = 2;
+const REFERENCE_OCTAVE_FOR_PARSING = 2; // C2, which is MIDI 36
 
 function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
@@ -147,10 +147,10 @@ export function startPlayback() {
     const rangeLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     const maxMidiTarget = minMidiTarget + rangeLength - 1;
     
-    // This validation is now primarily handled by the slider interaction logic in main.js
-    // but a sanity check here is okay.
     let rangeIsValid = true;
-    if (minMidiTarget < Constants.MIDI_A0 || maxMidiTarget > Constants.MIDI_C8 || minMidiTarget >= maxMidiTarget) {
+    if (minMidiTarget < Constants.MIDI_C2 || // Check against new overall min
+        maxMidiTarget > Constants.MIDI_B5 || // Check against new overall max
+        minMidiTarget >= maxMidiTarget) {
         console.warn(`Playback Start: Invalid MIDI range from sliders: ${minMidiTarget} - ${maxMidiTarget}. Using default voicing.`);
         rangeIsValid = false; 
     }
@@ -158,7 +158,7 @@ export function startPlayback() {
     if (rangeIsValid) {
         KeyboardUI.highlightRangeOnKeyboard(minMidiTarget, maxMidiTarget);
     } else {
-        KeyboardUI.clearKeyboardRangeHighlight(); // Clear if range becomes invalid just before play
+        KeyboardUI.clearKeyboardRangeHighlight();
     }
     
     const finalChords = parsedChords.map(chordObj => {
@@ -222,7 +222,6 @@ export function stopPlayback(clearDisplay = true) {
         DomElements.nextChordDisplay.textContent = "Next: --";
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
         KeyboardUI.clearKeyboardHighlights(); 
-        // Range highlight remains as per slider settings, doesn't clear on stop.
     }
     DomElements.playStopButton.textContent = "Play";
     DomElements.playStopButton.classList.remove('playing');

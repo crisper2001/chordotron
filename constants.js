@@ -7,12 +7,23 @@ export const NOTE_NAMES_MAP = {
 };
 export const A4 = 440;
 export const SEMITONES_IN_OCTAVE = 12;
+
 // MIDI Note constants
-export const MIDI_A0 = 21;
-export const MIDI_C8 = 108;
-export const DEFAULT_MIN_MIDI_RANGE_START = 48; // C3
-export const DEFAULT_RANGE_LENGTH = 24; // 2 Octaves
-export const MAX_POSSIBLE_MIDI_START_FOR_RANGE = MIDI_C8 - (12 - 1); // Max start note if range length is 12
+export const MIDI_C2 = 36;
+export const MIDI_C4 = 60; // For potential reference, as C5 is no longer the max start
+export const MIDI_B5 = 83;
+
+export const MIDI_A0 = 21; 
+export const MIDI_C8 = 108; 
+
+export const DEFAULT_MIN_MIDI_RANGE_START = MIDI_C2; // Default start is now C2
+export const DEFAULT_RANGE_LENGTH = 24; // 2 Octaves (min 12, max 24)
+
+// MAX_POSSIBLE_MIDI_START_FOR_RANGE is highest start if range is 12 and ends at C8.
+// For a display up to B5 (MIDI 83):
+// Max start for length 12: 83 - 11 = 72 (C5)
+// Max start for length 24: 83 - 23 = 60 (C4)
+export const MAX_POSSIBLE_MIDI_START_FOR_RANGE_B5 = MIDI_B5 - (12 - 1); // C5 if range is 12 ending B5
 
 export const CHORD_FORMULAS = {
     '': [0, 4, 7], 'maj': [0, 4, 7], 'M': [0, 4, 7], 'm': [0, 3, 7], 'min': [0, 3, 7],
@@ -78,6 +89,6 @@ export const defaultSettings = {
     metronomeVolume: 0.4, loopToggle: false, metronomeAudioToggle: false,
     inputMode: "chords", chordInput: "C G Am F Em(2) G(2) C",
     scaleDegreeInput: "I IV V I vi ii V I", songKey: "C", keyMode: "ionian",
-    rangeStartMidi: DEFAULT_MIN_MIDI_RANGE_START, // e.g., 48 (C3)
-    rangeLength: DEFAULT_RANGE_LENGTH, // e.g., 24 (2 octaves)
+    rangeStartMidi: DEFAULT_MIN_MIDI_RANGE_START, 
+    rangeLength: DEFAULT_RANGE_LENGTH,
 };
