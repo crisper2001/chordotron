@@ -143,17 +143,16 @@
                         <div class="control-group voicing-pitch-range-group">
                             <h3>Chord Pitch Range</h3>
                             <div>
-                                <label for="rangeStartNoteSlider">Range Start: <span id="rangeStartNoteValue">C2</span></label>
-                                <!-- MIDI C2=36, C4=60 (max start for length 24 to end at B5=83) -->
-                                <!-- Max start to end at B5 (83) with min length 12: 83-(12-1) = 72 (C5) -->
-                                <input type="range" id="rangeStartNoteSlider" value="36" min="36" max="72" step="1">
+                                <label for="rangeStartNoteSlider">Range Start: <span id="rangeStartNoteValue">C3</span></label>
+                                <!-- MIDI C2=36, Max Start for B5 end with 12 length = C5 (72) -->
+                                <input type="range" id="rangeStartNoteSlider" value="48" min="36" max="72" step="1">
                             </div>
                             <div>
                                 <label for="rangeLengthSlider">Range Length (semitones): <span id="rangeLengthValue">24</span></label>
                                 <input type="range" id="rangeLengthSlider" value="24" min="12" max="24" step="1">
                             </div>
                             <div class="range-display">
-                                Current Range: <span id="currentRangeDisplay">C2 - B3</span>
+                                Current Range: <span id="currentRangeDisplay">C3 - B4</span>
                             </div>
                         </div>
                     </div>

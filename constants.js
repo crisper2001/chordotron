@@ -10,19 +10,17 @@ export const SEMITONES_IN_OCTAVE = 12;
 
 // MIDI Note constants
 export const MIDI_C2 = 36;
-export const MIDI_C4 = 60; // For potential reference, as C5 is no longer the max start
-export const MIDI_B5 = 83;
+export const MIDI_C3 = 48; // Added for clarity
+export const MIDI_C4 = 60;
+export const MIDI_C5 = 72; // Max of the start slider
+export const MIDI_B5 = 83; // Max note the keyboard displays
 
 export const MIDI_A0 = 21; 
 export const MIDI_C8 = 108; 
 
-export const DEFAULT_MIN_MIDI_RANGE_START = MIDI_C2; // Default start is now C2
+export const DEFAULT_MIN_MIDI_RANGE_START = MIDI_C3; // Default start is now C3
 export const DEFAULT_RANGE_LENGTH = 24; // 2 Octaves (min 12, max 24)
 
-// MAX_POSSIBLE_MIDI_START_FOR_RANGE is highest start if range is 12 and ends at C8.
-// For a display up to B5 (MIDI 83):
-// Max start for length 12: 83 - 11 = 72 (C5)
-// Max start for length 24: 83 - 23 = 60 (C4)
 export const MAX_POSSIBLE_MIDI_START_FOR_RANGE_B5 = MIDI_B5 - (12 - 1); // C5 if range is 12 ending B5
 
 export const CHORD_FORMULAS = {
