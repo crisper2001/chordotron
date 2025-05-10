@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crisper's Perfect Chord Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Crisper's Perfect Chord Player</h1>
+        </header>
+
+        <fieldset id="appActionsFieldset">
+            <div class="app-actions-bar">
+                <div class="action-group file-actions">
+                    <button id="saveSettingsButton" title="Save current settings to a file">Save Settings...</button>
+                    <input type="file" id="loadSettingsFile" accept=".json" style="display: none;">
+                    <button id="loadSettingsButton" title="Load settings from a file">Load Settings...</button>
+                </div>
+                <div class="action-group app-management-actions">
+                    <button id="restoreDefaultsButton" title="Reset all settings to their original values">Restore
+                        Defaults</button>
+                </div>
+            </div>
+        </fieldset>
+
+        <main class="main-content">
+            <section class="input-section">
+                <fieldset id="mainControlsFieldset">
+                    <h2>Input & Options</h2>
+                    <div class="input-mode-selector">
+                        <label><input type="radio" name="inputMode" value="chords" checked> Chord Names</label>
+                        <label><input type="radio" name="inputMode" value="degrees"> Scale Degrees</label>
+                    </div>
+
+                    <div id="chordNameInputArea">
+                        <label for="chordInput">Chord Progression (e.g., Am G(2) C F#m7sus4):</label>
+                        <textarea id="chordInput" rows="10">C G Am F Em(2) G(2) C</textarea>
+                    </div>
+
+                    <div id="scaleDegreeInputArea" style="display:none;">
+                        <div class="key-selection-grid">
+                            <div>
+                                <label for="songKey">Song Key:</label>
+                                <select id="songKey">
+                                    <option value="C">C</option>
+                                    <option value="C#">C# / Db</option>
+                                    <option value="D">D</option>
+                                    <option value="D#">D# / Eb</option>
+                                    <option value="E">E</option>
+                                    <option value="F">F</option>
+                                    <option value="F#">F# / Gb</option>
+                                    <option value="G">G</option>
+                                    <option value="G#">G# / Ab</option>
+                                    <option value="A">A</option>
+                                    <option value="A#">A# / Bb</option>
+                                    <option value="B">B</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="keyMode">Mode:</label>
+                                <select id="keyMode">
+                                    <option value="ionian" selected>Ionian (Major)</option>
+                                    <option value="dorian">Dorian</option>
+                                    <option value="phrygian">Phrygian</option>
+                                    <option value="lydian">Lydian</option>
+                                    <option value="mixolydian">Mixolydian</option>
+                                    <option value="aeolian">Aeolian (Nat. Minor)</option>
+                                    <option value="locrian">Locrian</option>
+                                    <option value="harmonicMinor">Harmonic Minor</option>
+                                    <option value="melodicMinor">Melodic Minor (Asc)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <label for="scaleDegreeInput">Scale Degrees (e.g., I IV V(2) I):</label>
+                        <textarea id="scaleDegreeInput" rows="6">I IV V I vi ii V I</textarea>
+                    </div>
+
+                    <div class="options-grid">
+                        <div class="option-group">
+                            <input type="checkbox" id="loopToggle" name="loopToggle">
+                            <label for="loopToggle">Loop</label>
+                        </div>
+                        <div class="option-group">
+                            <input type="checkbox" id="metronomeAudioToggle" name="metronomeAudioToggle">
+                            <label for="metronomeAudioToggle">Metronome</label>
+                        </div>
+                    </div>
+                </fieldset>
+            </section>
+
+            <section class="parameters-section">
+                <fieldset id="parametersControlsFieldset">
+                    <h2>Parameters</h2>
+                    <div class="parameters-columns">
+                        <div class="control-group timing-group">
+                            <h3>Timing</h3>
+                            <label for="bpm">BPM: <span id="bpmValue">120</span></label>
+                            <input type="range" id="bpm" value="120" min="30" max="300" step="1">
+
+                            <label for="timeSignature">Time Signature:</label>
+                            <select id="timeSignature">
+                                <option value="2/4">2/4</option>
+                                <option value="3/4">3/4</option>
+                                <option value="4/4" selected>4/4</option>
+                                <option value="5/4">5/4</option>
+                                <option value="6/8">6/8</option>
+                                <option value="9/8">9/8</option>
+                                <option value="12/8">12/8</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group adsr-group">
+                            <h3>ADSR (Chords)</h3>
+                            <label for="attack">Attack (s): <span id="attackValue">0.05</span></label>
+                            <input type="range" id="attack" value="0.05" min="0.01" max="2" step="0.01">
+                            <label for="decay">Decay (s): <span id="decayValue">0.1</span></label>
+                            <input type="range" id="decay" value="0.1" min="0.01" max="2" step="0.01">
+                            <label for="sustain">Sustain: <span id="sustainValue">0.7</span></label>
+                            <input type="range" id="sustain" value="0.7" min="0" max="1" step="0.01">
+                            <label for="release">Release (s): <span id="releaseValue">0.3</span></label>
+                            <input type="range" id="release" value="0.3" min="0.01" max="3" step="0.01">
+                        </div>
+
+                        <div class="control-group sound-options-group">
+                            <h3>Sound</h3>
+                            <label for="oscillatorType">Oscillator (Chords):</label>
+                            <select id="oscillatorType">
+                                <option value="sine">Sine</option>
+                                <option value="square">Square</option>
+                                <option value="sawtooth">Sawtooth</option>
+                                <option value="triangle" selected>Triangle</option>
+                            </select>
+
+                            <label for="metronomeVolume">Metronome Vol: <span id="metronomeVolumeValue">0.4</span></label>
+                            <input type="range" id="metronomeVolume" value="0.4" min="0" max="1" step="0.01">
+                        </div>
+
+                        <div class="control-group voicing-pitch-range-group"> <!-- Changed h3 and class -->
+                            <h3>Chord Pitch Range</h3>
+                            <!-- "Enable Note Range" checkbox removed -->
+                            <div class="voicing-range-inputs">
+                                <div>
+                                    <label for="minNoteVoicing">Min Note (e.g., C3):</label>
+                                    <input type="text" id="minNoteVoicing" value="C3"> <!-- disabled removed -->
+                                </div>
+                                <div>
+                                    <label for="maxNoteVoicing">Max Note (e.g., C5):</label>
+                                    <input type="text" id="maxNoteVoicing" value="C5"> <!-- disabled removed -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </section>
+        </main>
+
+        <section class="keyboard-section">
+            <div id="pianoKeyboardContainer" class="piano-keyboard-container">
+            </div>
+        </section>
+
+        <footer class="playback-footer">
+            <div class="chord-context-display">
+                <div class="context-chord" id="prevChordDisplay">Prev: --</div>
+            </div>
+            <div class="main-playback-info">
+                <button id="playStopButton">Play</button>
+                <div id="currentChordDisplay">Currently Playing: --</div>
+                <div id="beatIndicatorContainer">
+                </div>
+            </div>
+            <div class="chord-context-display">
+                <div class="context-chord" id="nextChordDisplay">Next: --</div>
+            </div>
+        </footer>
+    </div>
+
+    <script type="module" src="main.js" defer></script>
+</body>
+
+</html>

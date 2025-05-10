@@ -1,0 +1,426 @@
+/* General Reset & Base */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #e9eff5; 
+    background-image: linear-gradient(to bottom, #f5f9fd 0%, #d8e2ec 100%); 
+    color: #333;
+    line-height: 1.5;
+    padding: 0; /* Full width */
+    font-size: 15px;
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
+    min-height: 100vh;
+    width: 100vw; /* Full viewport width */
+    overflow-x: hidden; 
+}
+
+.app-container {
+    width: 100%; /* Full available width */
+    margin: 0; 
+    background: #ffffff;
+    border-radius: 0; /* No rounded corners for full width */
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); 
+    overflow: hidden; 
+    display: flex; 
+    flex-direction: column; 
+    min-height: 100vh; 
+}
+
+header {
+    background-color: #007bff;
+    color: white;
+    padding: 12px 20px;
+    text-align: center;
+    border-bottom: 1px solid #0056b3;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.6em;
+    font-weight: 600;
+}
+
+/* App Actions Bar */
+.app-actions-bar {
+    padding: 8px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.action-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.app-actions-bar button {
+    padding: 6px 12px;
+    font-size: 0.85em;
+    font-weight: 500;
+    color: white;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.app-actions-bar button:hover {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.app-actions-bar button:active {
+    transform: translateY(0px);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input[type="range"]:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="text"]:focus-visible { 
+    outline: 2px solid #007bff;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+}
+.app-actions-bar button:focus-visible {
+    outline-color: #17a2b8;
+    box-shadow: 0 0 0 2px rgba(23, 162, 184, 0.25);
+}
+.app-management-actions button:focus-visible {
+    outline-color: #6c757d;
+    box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.25);
+}
+
+.file-actions button { background-color: #17a2b8; border-color: #17a2b8; }
+.file-actions button:hover { background-color: #138496; border-color: #117a8b; }
+.file-actions button:active { background-color: #10707f; border-color: #10707f; }
+
+.app-management-actions button { background-color: #6c757d; border-color: #6c757d; }
+.app-management-actions button:hover { background-color: #5a6268; border-color: #545b62; }
+.app-management-actions button:active { background-color: #495057; border-color: #495057; }
+
+/* Main Content Layout */
+.main-content {
+    display: grid;
+    grid-template-columns: minmax(320px, 0.7fr) 1.3fr; 
+    gap: 20px;
+    padding: 20px;
+    flex-grow: 1; 
+}
+
+.input-section,
+.parameters-section {
+    background-color: #fdfdfd;
+    padding: 20px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    min-width: 280px; 
+}
+
+#mainControlsFieldset > h2,
+#parametersControlsFieldset > h2 {
+    font-size: 1.25em;
+    color: #0056b3;
+    margin-top: 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #007bff80;
+    padding-bottom: 8px;
+    font-weight: 600;
+}
+
+fieldset#mainControlsFieldset,
+fieldset#appActionsFieldset,
+fieldset#parametersControlsFieldset {
+    border: none;
+    padding: 0;
+}
+
+fieldset[disabled] {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+fieldset[disabled] > h2 {
+    color: #888b8e !important; 
+    border-bottom-color: rgba(0, 123, 255, 0.1) !important; 
+}
+
+fieldset[disabled] .control-group h3 {
+    color: #888b8e !important;
+    border-bottom-color: rgba(0, 123, 255, 0.1) !important;
+}
+
+label {
+    display: block;
+    margin-top: 10px;
+    margin-bottom: 3px;
+    font-weight: 600;
+    font-size: 0.9em;
+    color: #495057;
+}
+
+fieldset[disabled] label > span {
+    color: #888b8e !important;
+    background-color: #e0e0e0 !important; 
+}
+
+input[type="range"],
+input[type="text"], 
+select,
+textarea {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 2px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+    background-color: #fff;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+select:hover, textarea:hover, input[type="text"]:hover { border-color: #86b7fe; }
+
+/* Style for invalid input fields */
+input[type="text"].input-error {
+    border-color: #dc3545 !important; /* Red border for error */
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important; /* Red glow */
+}
+
+
+input[type="range"] { padding: 0; margin-bottom: 8px; accent-color: #007bff; }
+textarea { resize: vertical; min-height: 80px; }
+
+.voicing-range-inputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 5px;
+}
+.voicing-range-inputs input[type="text"] {
+    font-size: 0.9em;
+    padding: 6px 8px;
+}
+
+label>span { 
+    font-weight: 500;
+    margin-left: 6px;
+    color: #007bff;
+    font-size: 0.85em;
+    background-color: #e9ecef;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+.input-mode-selector {
+    margin-bottom: 15px;
+    padding: 8px 10px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.input-mode-selector label { font-weight: 500; margin: 0; display: flex; align-items: center; font-size: 0.95em; color: #333; }
+.input-mode-selector input[type="radio"] { margin-right: 6px; transform: scale(1.05); accent-color: #007bff; }
+
+.key-selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.key-selection-grid div label { margin-top: 0; }
+
+.options-grid { 
+    display: flex; gap: 20px; margin-top: 12px; margin-bottom: 5px; align-items: center; padding: 8px 0; 
+    border-top: 1px solid #eee;
+}
+.option-group { display: flex; align-items: center; }
+.option-group input[type="checkbox"] { margin-right: 6px; transform: scale(1.1); accent-color: #007bff; }
+.option-group label { margin-top: 0; font-weight: 500; font-size: 0.95em; color: #333; }
+
+.parameters-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+.control-group { padding: 15px; border-radius: 5px; border: 1px solid #d1d9e0; background-color: #fff; }
+
+.control-group h3 { 
+    margin-top: 0; margin-bottom: 10px; font-size: 1.1em; color: #0056b3; border-bottom: 1px solid #007bff30; padding-bottom: 6px; font-weight: 600;
+}
+
+/* --- Piano Keyboard Styles --- */
+.keyboard-section {
+    padding: 15px 20px;
+    background-color: #f0f2f5; 
+    border-top: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.piano-keyboard-container {
+    position: relative; 
+    display: flex; 
+    width: 100%; 
+    max-width: 1000px; 
+    margin: 0 auto; 
+    height: 120px; 
+    background-color: #333; 
+    border-radius: 4px;
+    overflow: hidden; 
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.piano-key {
+    position: absolute; 
+    height: 100%;
+    border: 1px solid #555;
+    border-top: none;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+    transition: background-color 0.05s ease-in-out;
+}
+
+.piano-key.white-key {
+    background-color: #fff;
+    z-index: 1;
+}
+
+.piano-key.black-key {
+    background-color: #3a3a3a;
+    height: 60%; 
+    z-index: 2; 
+    border-left: 2px solid #222;
+    border-right: 2px solid #222;
+    border-bottom: 3px solid #222;
+    border-radius: 0 0 3px 3px;
+    box-shadow: inset 0 -2px 3px rgba(255,255,255,0.1), 0 1px 0px rgba(0,0,0,0.4);
+}
+
+.piano-key.white-key.active {
+    background-color: #79c7ff; 
+}
+
+.piano-key.black-key.active {
+    background-color: #0056b3; 
+    box-shadow: inset 0 -1px 2px rgba(255,255,255,0.2), 0 0px 0px rgba(0,0,0,0.4);
+}
+
+
+/* Footer - Playback Controls */
+.playback-footer {
+    display: flex; align-items: center; padding: 10px 20px;
+    background-color: #343a40; color: #f8f9fa; border-top: 2px solid #007bff; gap: 15px;
+    flex-wrap: wrap;
+}
+
+.main-playback-info {
+    display: flex; flex-direction: column; align-items: center; text-align: center; flex-grow: 1; gap: 8px;
+}
+
+#playStopButton {
+    background-color: #28a745; color: white; padding: 10px 25px;
+    border: none; border-radius: 5px; cursor: pointer;
+    font-size: 1.1em;
+    font-weight: 600; min-width: 100px;
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.15s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+#playStopButton:hover { transform: translateY(-1px); box-shadow: 0 3px 6px rgba(0,0,0,0.15); }
+#playStopButton:active { transform: translateY(0px); box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+#playStopButton.playing { background-color: #dc3545; }
+#playStopButton.playing:hover { background-color: #c82333; }
+
+#currentChordDisplay {
+    font-size: 1.2em;
+    font-weight: 700; color: #ffffff; min-height: 24px;
+    padding: 1px 10px; background-color: rgba(255,255,255,0.1); border-radius: 4px; line-height: 1.3;
+}
+
+.chord-context-display {
+    flex: 0 1 130px;
+    text-align: center; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.context-chord {
+    font-size: 0.9em;
+    color: #ced4da; padding: 5px 8px;
+    background-color: rgba(255, 255, 255, 0.05); border: 1px solid #495057;
+    border-radius: 4px; min-height: 24px;
+    line-height: 1.3;
+}
+
+#beatIndicatorContainer {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.beat-indicator {
+    width: 18px;
+    height: 18px;
+    background-color: #6c757d; border-radius: 50%;
+    transition: background-color 0.05s ease-in-out, transform 0.1s ease, box-shadow 0.1s ease;
+    border: 1px solid #495057;
+}
+.beat-indicator.active { background-color: #007bff; transform: scale(1.1); box-shadow: 0 0 6px rgba(0, 123, 255, 0.4); }
+.beat-indicator.downbeat { background-color: #fd7e14; box-shadow: 0 0 6px rgba(253, 126, 20, 0.5); }
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+    .piano-keyboard-container { height: 100px; }
+}
+
+@media (max-width: 768px) {
+    header { padding: 10px 15px; }
+    header h1 { font-size: 1.4em; }
+    .app-actions-bar { padding: 8px 15px; }
+    .main-content { 
+        padding: 15px; 
+        gap: 15px;
+        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+    }
+    .input-section, .parameters-section, .control-group { padding: 12px; }
+
+    #mainControlsFieldset > h2,
+    #parametersControlsFieldset > h2 { font-size: 1.15em; margin-bottom: 12px; padding-bottom: 6px;}
+
+    .control-group h3 { font-size: 1.05em; margin-bottom: 10px; }
+    .playback-footer { padding: 10px 15px; }
+    .keyboard-section { padding: 10px 15px; }
+    .piano-keyboard-container { height: 90px; }
+}
+
+@media (max-width: 600px) {
+    .parameters-columns { grid-template-columns: 1fr; }
+    .voicing-range-inputs { grid-template-columns: 1fr; } 
+    .playback-footer { flex-direction: column; gap: 10px; padding-top: 12px; padding-bottom: 12px; }
+    .main-playback-info { order: 1; width: 100%; margin-bottom: 8px; gap: 6px; }
+    #currentChordDisplay { font-size: 1.15em; }
+    .chord-context-display { flex-basis: 48%; order: 2; margin-bottom: 6px; }
+    #beatIndicatorContainer { order: initial; margin-top: 0; }
+    .beat-indicator { width: 16px; height: 16px; }
+    .key-selection-grid { grid-template-columns: 1fr; }
+    textarea { min-height: 70px; }
+    label > span { display: inline-block; margin-top: 3px; margin-left: 0; }
+    .piano-keyboard-container { height: 80px; }
+    .app-actions-bar { flex-direction: column; align-items: stretch; } 
+    .action-group { margin-bottom: 6px; justify-content: center; }
+}
+
+@media (max-width: 420px) {
+    header h1 { font-size: 1.3em; }
+    .main-content { padding: 10px; }
+    .chord-context-display { flex-basis: 100%; }
+    #playStopButton { font-size: 1em; padding: 8px 18px; }
+    #currentChordDisplay { font-size: 1.1em; }
+    .beat-indicator { width: 15px; height: 15px; }
+    .input-mode-selector { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .piano-keyboard-container { height: 70px; }
+}

@@ -1,0 +1,157 @@
+import * as DomElements from './dom-elements.js';
+import * as Constants from './constants.js';
+import * as AppState from './state.js';
+import { stopPlayback } from './playback-scheduler.js'; // Assuming setInputErrorState is not here
+
+// Helper to clear input error states, could be moved to playback-scheduler or kept here
+function clearInputErrorStates() {
+    if (DomElements.minNoteVoicingInput) DomElements.minNoteVoicingInput.classList.remove('input-error');
+    if (DomElements.maxNoteVoicingInput) DomElements.maxNoteVoicingInput.classList.remove('input-error');
+}
+
+
+export function setControlsDisabled(disabled) {
+    DomElements.mainControlsFieldset.disabled = disabled;
+    if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = disabled;
+    if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = disabled;
+}
+
+export function setupSliderListeners() {
+    const sliders = [
+        { el: DomElements.bpmSlider, span: DomElements.bpmValueSpan, isFloat: false },
+        { el: DomElements.attackSlider, span: DomElements.attackValueSpan, isFloat: true },
+        { el: DomElements.decaySlider, span: DomElements.decayValueSpan, isFloat: true },
+        { el: DomElements.sustainSlider, span: DomElements.sustainValueSpan, isFloat: true },
+        { el: DomElements.releaseSlider, span: DomElements.releaseValueSpan, isFloat: true },
+        { el: DomElements.metronomeVolumeSlider, span: DomElements.metronomeVolumeValueSpan, isFloat: true },
+    ];
+    sliders.forEach(({el, span, isFloat}) => {
+        if (!el) return; 
+        if (span) span.textContent = parseFloat(el.value).toFixed(isFloat ? 2 : 0);
+        el.addEventListener('input', (event) => {
+            if (span) span.textContent = parseFloat(event.target.value).toFixed(isFloat ? 2 : 0);
+        });
+    });
+}
+
+export function getBeatsPerMeasure() {
+    const timeSig = DomElements.timeSignatureSelect.value;
+    return parseInt(timeSig.split('/')[0], 10);
+}
+
+export function getBeatDurationFactorForTimeSignature(timeSignatureString) {
+    const denominator = parseInt(timeSignatureString.split('/')[1], 10);
+    switch (denominator) {
+        case 2: return 2;
+        case 4: return 1;
+        case 8: return 0.5;
+        case 16: return 0.25;
+        default: return 1;
+    }
+}
+
+export function updateBeatIndicatorsVisibility(beatsPerMeasure) {
+    if (!DomElements.beatIndicatorContainer) return;
+    DomElements.beatIndicatorContainer.innerHTML = '';
+
+    for (let i = 0; i < beatsPerMeasure; i++) {
+        const indicator = document.createElement('div');
+        indicator.classList.add('beat-indicator');
+        indicator.id = `beatIndicator${i + 1}`;
+        DomElements.beatIndicatorContainer.appendChild(indicator);
+    }
+}
+
+export function formatChordForDisplay(chordNameToFormat) {
+    let displayChordName = chordNameToFormat;
+    let internalName = chordNameToFormat.replace(/°/g, 'o').replace(/ø/g, 'h');
+
+    const shorthandHMatch = internalName.match(/^([A-Ga-g][#b]?)(h)$/);
+    if (shorthandHMatch && !internalName.endsWith('sus')) {
+        internalName = shorthandHMatch[1] + 'h7';
+    }
+
+    const match = internalName.match(/^([A-Ga-g][#b]?)(.*)$/);
+    if (match) {
+        const root = match[1];
+        let quality = match[2];
+
+        if (Constants.DISPLAY_SYMBOL_MAP[quality]) {
+            quality = Constants.DISPLAY_SYMBOL_MAP[quality];
+        } else {
+            if (quality.includes('o') && !quality.match(/no|so|lo|co|do|ao/i) && !quality.endsWith('sus')) {
+                 quality = quality.replace(/o(?!sus)/g, '°');
+            }
+             if (quality.includes('h') && !quality.match(/sh|th|ch|ph|rh|nh/i) && !quality.endsWith('sus')) {
+                quality = quality.replace(/h(?!sus)/g, 'ø');
+            }
+        }
+        displayChordName = root + quality;
+    }
+    return displayChordName;
+}
+
+export function updateChordContextDisplay(currentIndex, chordsArray) {
+    const currentChordObject = chordsArray[currentIndex];
+    if (currentChordObject) {
+        const displayCurrent = formatChordForDisplay(currentChordObject.name);
+        DomElements.currentChordDisplay.textContent = `Playing: ${displayCurrent}`;
+    } else {
+        DomElements.currentChordDisplay.textContent = "Playing: --";
+    }
+
+    if (currentIndex > 0 && chordsArray[currentIndex - 1]) {
+        const prevChordObject = chordsArray[currentIndex - 1];
+        const displayPrev = formatChordForDisplay(prevChordObject.name);
+        DomElements.prevChordDisplay.textContent = `Prev: ${displayPrev}`;
+    } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
+        const prevChordObject = chordsArray[chordsArray.length - 1];
+        const displayPrev = formatChordForDisplay(prevChordObject.name);
+        DomElements.prevChordDisplay.textContent = `Prev: ${displayPrev}`;
+    } else {
+        DomElements.prevChordDisplay.textContent = "Prev: --";
+    }
+
+    if (currentIndex < chordsArray.length - 1 && chordsArray[currentIndex + 1]) {
+        const nextChordObject = chordsArray[currentIndex + 1];
+        const displayNext = formatChordForDisplay(nextChordObject.name);
+        DomElements.nextChordDisplay.textContent = `Next: ${displayNext}`;
+    } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
+        const nextChordObject = chordsArray[0];
+        const displayNext = formatChordForDisplay(nextChordObject.name);
+        DomElements.nextChordDisplay.textContent = `Next: ${displayNext}`;
+    } else {
+        DomElements.nextChordDisplay.textContent = "Next: --";
+    }
+}
+
+export function applySettingsToUI(settings) {
+    if (AppState.sequencePlaying) stopPlayback(true);
+
+    clearInputErrorStates(); // Clear any lingering error states
+
+    DomElements.bpmSlider.value = settings.bpm;
+    DomElements.attackSlider.value = settings.attack;
+    DomElements.decaySlider.value = settings.decay;
+    DomElements.sustainSlider.value = settings.sustain;
+    DomElements.releaseSlider.value = settings.release;
+    DomElements.timeSignatureSelect.value = settings.timeSignature;
+    DomElements.oscillatorTypeEl.value = settings.oscillatorType;
+    DomElements.metronomeVolumeSlider.value = settings.metronomeVolume;
+    DomElements.loopToggle.checked = settings.loopToggle;
+    DomElements.metronomeAudioToggle.checked = settings.metronomeAudioToggle;
+    DomElements.chordInputEl.value = settings.chordInput;
+    DomElements.scaleDegreeInputEl.value = settings.scaleDegreeInput;
+    DomElements.songKeySelect.value = settings.songKey;
+    DomElements.keyModeSelect.value = settings.keyMode;
+    DomElements.minNoteVoicingInput.value = settings.minNoteVoicing ?? "C3";
+    DomElements.maxNoteVoicingInput.value = settings.maxNoteVoicing ?? "C5";
+
+    const modeToSelect = settings.inputMode || "chords";
+    document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
+    DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
+    DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
+
+    setupSliderListeners();
+    updateBeatIndicatorsVisibility(getBeatsPerMeasure());
+}
