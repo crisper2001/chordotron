@@ -125,11 +125,13 @@ function scheduleNextEvent() {
     AppState.setCurrentSchedulerTimeoutId(setTimeout(scheduleNextEvent, Math.max(0, timeUntilNextEventMs - 50)));
 }
 
-function setInputErrorState(inputElement, isError) {
-    if (isError) {
-        inputElement.classList.add('input-error');
-    } else {
-        inputElement.classList.remove('input-error');
+function setInputErrorState(inputElement, isError) { // Renamed, already defined in main.js
+    if (inputElement) { // Add guard
+        if (isError) {
+            inputElement.classList.add('input-error');
+        } else {
+            inputElement.classList.remove('input-error');
+        }
     }
 }
 
@@ -138,7 +140,6 @@ export function startPlayback() {
         AppState.audioCtx.resume().catch(e => console.error("Error resuming AudioContext:", e));
     }
 
-    // Clear previous error states
     setInputErrorState(DomElements.minNoteVoicingInput, false);
     setInputErrorState(DomElements.maxNoteVoicingInput, false);
 
@@ -175,10 +176,16 @@ export function startPlayback() {
         console.warn(`Min note (${minNoteStr}) must be less than Max note (${maxNoteStr}).`);
     }
     
+    // Update keyboard range highlight based on validation
+    if (rangeIsValid) {
+        KeyboardUI.highlightRangeOnKeyboard(minMidiTarget, maxMidiTarget);
+    } else {
+        KeyboardUI.clearKeyboardRangeHighlight();
+    }
+
     const finalChords = parsedChords.map(chordObj => {
         const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(chordObj.name, REFERENCE_OCTAVE_FOR_PARSING);
         
-        // Pass nulls if range is invalid, voiceFrequenciesInMidiRange will use defaults
         const currentMinMidi = rangeIsValid ? minMidiTarget : null;
         const currentMaxMidi = rangeIsValid ? maxMidiTarget : null;
 
@@ -190,10 +197,11 @@ export function startPlayback() {
 
     if (AppState.originalChords.length === 0 || AppState.originalChords.every(c => !c.frequencies || c.frequencies.length === 0) ) {
         DomElements.currentChordDisplay.textContent = "No valid chords to play.";
-        if (!rangeIsValid && AppState.originalChords.length > 0) { // If chords exist but range was bad
+        if (!rangeIsValid && AppState.originalChords.length > 0) {
              DomElements.currentChordDisplay.textContent += " (Check note range inputs)";
         }
-        KeyboardUI.clearKeyboardHighlights();
+        KeyboardUI.clearKeyboardHighlights(); // Clear active notes
+        // Range highlight is handled above based on rangeIsValid
         return;
     }
     
@@ -210,10 +218,9 @@ export function startPlayback() {
     DomElements.prevChordDisplay.textContent = "Prev: --";
     DomElements.nextChordDisplay.textContent = "Next: --";
     DomElements.currentChordDisplay.textContent = "Playing: --";
-    KeyboardUI.clearKeyboardHighlights();
+    KeyboardUI.clearKeyboardHighlights(); // Clear active notes
 
     AppState.setNextEventTime(AppState.audioCtx.currentTime + 0.1); 
-
     scheduleNextEvent();
 }
 
@@ -240,8 +247,8 @@ export function stopPlayback(clearDisplay = true) {
         DomElements.prevChordDisplay.textContent = "Prev: --";
         DomElements.nextChordDisplay.textContent = "Next: --";
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
-        KeyboardUI.clearKeyboardHighlights();
-        // Don't clear error states here, let them persist until next play attempt or settings load
+        KeyboardUI.clearKeyboardHighlights(); // Clears active notes
+        KeyboardUI.clearKeyboardRangeHighlight(); // Clears range indication on stop
     }
     DomElements.playStopButton.textContent = "Play";
     DomElements.playStopButton.classList.remove('playing');

@@ -1,4 +1,3 @@
-/* General Reset & Base */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -11,21 +10,21 @@ body {
     background-image: linear-gradient(to bottom, #f5f9fd 0%, #d8e2ec 100%); 
     color: #333;
     line-height: 1.5;
-    padding: 0; /* Full width */
+    padding: 0;
     font-size: 15px;
     display: flex; 
     flex-direction: column;
     align-items: center; 
     min-height: 100vh;
-    width: 100vw; /* Full viewport width */
+    width: 100vw;
     overflow-x: hidden; 
 }
 
 .app-container {
-    width: 100%; /* Full available width */
+    width: 100%;
     margin: 0; 
     background: #ffffff;
-    border-radius: 0; /* No rounded corners for full width */
+    border-radius: 0;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); 
     overflow: hidden; 
     display: flex; 
@@ -47,7 +46,6 @@ header h1 {
     font-weight: 600;
 }
 
-/* App Actions Bar */
 .app-actions-bar {
     padding: 8px 20px;
     background-color: #f8f9fa;
@@ -114,7 +112,6 @@ input[type="text"]:focus-visible {
 .app-management-actions button:hover { background-color: #5a6268; border-color: #545b62; }
 .app-management-actions button:active { background-color: #495057; border-color: #495057; }
 
-/* Main Content Layout */
 .main-content {
     display: grid;
     grid-template-columns: minmax(320px, 0.7fr) 1.3fr; 
@@ -195,12 +192,10 @@ textarea {
 }
 select:hover, textarea:hover, input[type="text"]:hover { border-color: #86b7fe; }
 
-/* Style for invalid input fields */
 input[type="text"].input-error {
-    border-color: #dc3545 !important; /* Red border for error */
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important; /* Red glow */
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }
-
 
 input[type="range"] { padding: 0; margin-bottom: 8px; accent-color: #007bff; }
 textarea { resize: vertical; min-height: 80px; }
@@ -256,7 +251,6 @@ label>span {
     margin-top: 0; margin-bottom: 10px; font-size: 1.1em; color: #0056b3; border-bottom: 1px solid #007bff30; padding-bottom: 6px; font-weight: 600;
 }
 
-/* --- Piano Keyboard Styles --- */
 .keyboard-section {
     padding: 15px 20px;
     background-color: #f0f2f5; 
@@ -302,17 +296,25 @@ label>span {
     box-shadow: inset 0 -2px 3px rgba(255,255,255,0.1), 0 1px 0px rgba(0,0,0,0.4);
 }
 
-.piano-key.white-key.active {
+.piano-key.white-key.in-range {
+    background-color: #fff9c4; 
+}
+
+.piano-key.black-key.in-range {
+    background-color: #a1887f; 
+}
+
+.piano-key.white-key.active, 
+.piano-key.white-key.active.in-range { 
     background-color: #79c7ff; 
 }
 
-.piano-key.black-key.active {
+.piano-key.black-key.active,
+.piano-key.black-key.active.in-range { 
     background-color: #0056b3; 
     box-shadow: inset 0 -1px 2px rgba(255,255,255,0.2), 0 0px 0px rgba(0,0,0,0.4);
 }
 
-
-/* Footer - Playback Controls */
 .playback-footer {
     display: flex; align-items: center; padding: 10px 20px;
     background-color: #343a40; color: #f8f9fa; border-top: 2px solid #007bff; gap: 15px;
@@ -372,7 +374,6 @@ label>span {
 .beat-indicator.active { background-color: #007bff; transform: scale(1.1); box-shadow: 0 0 6px rgba(0, 123, 255, 0.4); }
 .beat-indicator.downbeat { background-color: #fd7e14; box-shadow: 0 0 6px rgba(253, 126, 20, 0.5); }
 
-/* Responsive Adjustments */
 @media (max-width: 1024px) {
     .piano-keyboard-container { height: 100px; }
 }
@@ -384,7 +385,7 @@ label>span {
     .main-content { 
         padding: 15px; 
         gap: 15px;
-        grid-template-columns: 1fr; /* Stack columns on smaller screens */
+        grid-template-columns: 1fr;
     }
     .input-section, .parameters-section, .control-group { padding: 12px; }
 
