@@ -1,14 +1,12 @@
 import * as DomElements from './dom-elements.js';
 import * as Constants from './constants.js';
 import * as AppState from './state.js';
-import { stopPlayback } from './playback-scheduler.js'; // Assuming setInputErrorState is not here
+import { stopPlayback } from './playback-scheduler.js';
+import * as MusicTheory from './music-theory.js'; // For midiToNoteNameWithOctave
 
-// Helper to clear input error states, could be moved to playback-scheduler or kept here
 function clearInputErrorStates() {
-    if (DomElements.minNoteVoicingInput) DomElements.minNoteVoicingInput.classList.remove('input-error');
-    if (DomElements.maxNoteVoicingInput) DomElements.maxNoteVoicingInput.classList.remove('input-error');
+    // No direct text input errors for sliders in this model, but could be used if validation added
 }
-
 
 export function setControlsDisabled(disabled) {
     DomElements.mainControlsFieldset.disabled = disabled;
@@ -24,6 +22,7 @@ export function setupSliderListeners() {
         { el: DomElements.sustainSlider, span: DomElements.sustainValueSpan, isFloat: true },
         { el: DomElements.releaseSlider, span: DomElements.releaseValueSpan, isFloat: true },
         { el: DomElements.metronomeVolumeSlider, span: DomElements.metronomeVolumeValueSpan, isFloat: true },
+        // Pitch Range sliders are handled separately due to more complex update logic
     ];
     sliders.forEach(({el, span, isFloat}) => {
         if (!el) return; 
@@ -33,6 +32,20 @@ export function setupSliderListeners() {
         });
     });
 }
+
+export function updatePitchRangeDisplay() {
+    const startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    const length = parseInt(DomElements.rangeLengthSlider.value, 10);
+    const endMidi = startMidi + length - 1;
+
+    const startNoteName = MusicTheory.midiToNoteNameWithOctave(startMidi) || 'N/A';
+    const endNoteName = MusicTheory.midiToNoteNameWithOctave(endMidi) || 'N/A';
+
+    if (DomElements.rangeStartNoteValueSpan) DomElements.rangeStartNoteValueSpan.textContent = startNoteName;
+    if (DomElements.rangeLengthValueSpan) DomElements.rangeLengthValueSpan.textContent = length;
+    if (DomElements.currentRangeDisplaySpan) DomElements.currentRangeDisplaySpan.textContent = `${startNoteName} - ${endNoteName}`;
+}
+
 
 export function getBeatsPerMeasure() {
     const timeSig = DomElements.timeSignatureSelect.value;
@@ -128,7 +141,7 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
 export function applySettingsToUI(settings) {
     if (AppState.sequencePlaying) stopPlayback(true);
 
-    clearInputErrorStates(); // Clear any lingering error states
+    clearInputErrorStates();
 
     DomElements.bpmSlider.value = settings.bpm;
     DomElements.attackSlider.value = settings.attack;
@@ -144,14 +157,20 @@ export function applySettingsToUI(settings) {
     DomElements.scaleDegreeInputEl.value = settings.scaleDegreeInput;
     DomElements.songKeySelect.value = settings.songKey;
     DomElements.keyModeSelect.value = settings.keyMode;
-    DomElements.minNoteVoicingInput.value = settings.minNoteVoicing ?? "C3";
-    DomElements.maxNoteVoicingInput.value = settings.maxNoteVoicing ?? "C5";
+    
+    DomElements.rangeStartNoteSlider.value = settings.rangeStartMidi ?? Constants.DEFAULT_MIN_MIDI_RANGE_START;
+    DomElements.rangeLengthSlider.value = settings.rangeLength ?? Constants.DEFAULT_RANGE_LENGTH;
+    // Adjust max of start slider based on length
+    const currentLength = parseInt(DomElements.rangeLengthSlider.value, 10);
+    DomElements.rangeStartNoteSlider.max = Constants.MIDI_C8 - (currentLength - 1);
+
+    updatePitchRangeDisplay(); // Update text displays for pitch range sliders
 
     const modeToSelect = settings.inputMode || "chords";
     document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
     DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
     DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
 
-    setupSliderListeners();
+    setupSliderListeners(); // For general sliders
     updateBeatIndicatorsVisibility(getBeatsPerMeasure());
 }

@@ -4,6 +4,7 @@ import * as MusicTheory from './music-theory.js';
 import * as AudioCore from './audio-core.js';
 import * as UIHelpers from './ui-helpers.js';
 import * as KeyboardUI from './keyboard-ui.js';
+import * as Constants from './constants.js'; // For MIDI constants
 
 const REFERENCE_OCTAVE_FOR_PARSING = 2;
 
@@ -125,23 +126,10 @@ function scheduleNextEvent() {
     AppState.setCurrentSchedulerTimeoutId(setTimeout(scheduleNextEvent, Math.max(0, timeUntilNextEventMs - 50)));
 }
 
-function setInputErrorState(inputElement, isError) { // Renamed, already defined in main.js
-    if (inputElement) { // Add guard
-        if (isError) {
-            inputElement.classList.add('input-error');
-        } else {
-            inputElement.classList.remove('input-error');
-        }
-    }
-}
-
 export function startPlayback() {
     if (AppState.audioCtx.state === 'suspended') {
         AppState.audioCtx.resume().catch(e => console.error("Error resuming AudioContext:", e));
     }
-
-    setInputErrorState(DomElements.minNoteVoicingInput, false);
-    setInputErrorState(DomElements.maxNoteVoicingInput, false);
 
     const defaultBeatsPerChord = UIHelpers.getBeatsPerMeasure();
     const selectedInputMode = document.querySelector('input[name="inputMode"]:checked').value;
@@ -155,34 +143,24 @@ export function startPlayback() {
         parsedChords = MusicTheory.parseScaleDegreeString(DomElements.scaleDegreeInputEl.value, currentSongKey, currentKeyModeVal, defaultBeatsPerChord);
     }
 
-    const minNoteStr = DomElements.minNoteVoicingInput.value;
-    const maxNoteStr = DomElements.maxNoteVoicingInput.value;
-    let minMidiTarget = MusicTheory.noteNameToMidi(minNoteStr);
-    let maxMidiTarget = MusicTheory.noteNameToMidi(maxNoteStr);
-    let rangeIsValid = true;
-
-    if (minMidiTarget === null) {
-        setInputErrorState(DomElements.minNoteVoicingInput, true);
-        rangeIsValid = false;
-    }
-    if (maxMidiTarget === null) {
-        setInputErrorState(DomElements.maxNoteVoicingInput, true);
-        rangeIsValid = false;
-    }
-    if (minMidiTarget !== null && maxMidiTarget !== null && minMidiTarget >= maxMidiTarget) {
-        setInputErrorState(DomElements.minNoteVoicingInput, true);
-        setInputErrorState(DomElements.maxNoteVoicingInput, true);
-        rangeIsValid = false;
-        console.warn(`Min note (${minNoteStr}) must be less than Max note (${maxNoteStr}).`);
-    }
+    const minMidiTarget = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    const rangeLength = parseInt(DomElements.rangeLengthSlider.value, 10);
+    const maxMidiTarget = minMidiTarget + rangeLength - 1;
     
-    // Update keyboard range highlight based on validation
+    // This validation is now primarily handled by the slider interaction logic in main.js
+    // but a sanity check here is okay.
+    let rangeIsValid = true;
+    if (minMidiTarget < Constants.MIDI_A0 || maxMidiTarget > Constants.MIDI_C8 || minMidiTarget >= maxMidiTarget) {
+        console.warn(`Playback Start: Invalid MIDI range from sliders: ${minMidiTarget} - ${maxMidiTarget}. Using default voicing.`);
+        rangeIsValid = false; 
+    }
+
     if (rangeIsValid) {
         KeyboardUI.highlightRangeOnKeyboard(minMidiTarget, maxMidiTarget);
     } else {
-        KeyboardUI.clearKeyboardRangeHighlight();
+        KeyboardUI.clearKeyboardRangeHighlight(); // Clear if range becomes invalid just before play
     }
-
+    
     const finalChords = parsedChords.map(chordObj => {
         const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(chordObj.name, REFERENCE_OCTAVE_FOR_PARSING);
         
@@ -197,11 +175,7 @@ export function startPlayback() {
 
     if (AppState.originalChords.length === 0 || AppState.originalChords.every(c => !c.frequencies || c.frequencies.length === 0) ) {
         DomElements.currentChordDisplay.textContent = "No valid chords to play.";
-        if (!rangeIsValid && AppState.originalChords.length > 0) {
-             DomElements.currentChordDisplay.textContent += " (Check note range inputs)";
-        }
-        KeyboardUI.clearKeyboardHighlights(); // Clear active notes
-        // Range highlight is handled above based on rangeIsValid
+        KeyboardUI.clearKeyboardHighlights();
         return;
     }
     
@@ -218,7 +192,7 @@ export function startPlayback() {
     DomElements.prevChordDisplay.textContent = "Prev: --";
     DomElements.nextChordDisplay.textContent = "Next: --";
     DomElements.currentChordDisplay.textContent = "Playing: --";
-    KeyboardUI.clearKeyboardHighlights(); // Clear active notes
+    KeyboardUI.clearKeyboardHighlights();
 
     AppState.setNextEventTime(AppState.audioCtx.currentTime + 0.1); 
     scheduleNextEvent();
@@ -247,8 +221,8 @@ export function stopPlayback(clearDisplay = true) {
         DomElements.prevChordDisplay.textContent = "Prev: --";
         DomElements.nextChordDisplay.textContent = "Next: --";
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
-        KeyboardUI.clearKeyboardHighlights(); // Clears active notes
-        KeyboardUI.clearKeyboardRangeHighlight(); // Clears range indication on stop
+        KeyboardUI.clearKeyboardHighlights(); 
+        // Range highlight remains as per slider settings, doesn't clear on stop.
     }
     DomElements.playStopButton.textContent = "Play";
     DomElements.playStopButton.classList.remove('playing');

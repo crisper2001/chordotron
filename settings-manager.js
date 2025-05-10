@@ -8,7 +8,6 @@ export function collectCurrentSettings() {
         decay: parseFloat(DomElements.decaySlider.value),
         sustain: parseFloat(DomElements.sustainSlider.value),
         release: parseFloat(DomElements.releaseSlider.value),
-        // baseOctave: parseInt(DomElements.baseOctaveSlider.value), // REMOVED
         timeSignature: DomElements.timeSignatureSelect.value,
         oscillatorType: DomElements.oscillatorTypeEl.value,
         metronomeVolume: parseFloat(DomElements.metronomeVolumeSlider.value),
@@ -19,9 +18,8 @@ export function collectCurrentSettings() {
         scaleDegreeInput: DomElements.scaleDegreeInputEl.value,
         songKey: DomElements.songKeySelect.value,
         keyMode: DomElements.keyModeSelect.value,
-        // enableNoteRangeVoicing: DomElements.enableNoteRangeVoicingToggle.checked, // REMOVED
-        minNoteVoicing: DomElements.minNoteVoicingInput.value,
-        maxNoteVoicing: DomElements.maxNoteVoicingInput.value
+        rangeStartMidi: parseInt(DomElements.rangeStartNoteSlider.value, 10),
+        rangeLength: parseInt(DomElements.rangeLengthSlider.value, 10)
     };
 }
 

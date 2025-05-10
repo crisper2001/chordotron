@@ -7,6 +7,12 @@ export const NOTE_NAMES_MAP = {
 };
 export const A4 = 440;
 export const SEMITONES_IN_OCTAVE = 12;
+// MIDI Note constants
+export const MIDI_A0 = 21;
+export const MIDI_C8 = 108;
+export const DEFAULT_MIN_MIDI_RANGE_START = 48; // C3
+export const DEFAULT_RANGE_LENGTH = 24; // 2 Octaves
+export const MAX_POSSIBLE_MIDI_START_FOR_RANGE = MIDI_C8 - (12 - 1); // Max start note if range length is 12
 
 export const CHORD_FORMULAS = {
     '': [0, 4, 7], 'maj': [0, 4, 7], 'M': [0, 4, 7], 'm': [0, 3, 7], 'min': [0, 3, 7],
@@ -68,11 +74,10 @@ export const DISPLAY_SYMBOL_MAP = { 'o': '°', 'o7': '°7', 'oM7': '°M7', 'h7':
 
 export const defaultSettings = {
     bpm: 120, attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.3,
-    // baseOctave: 3, // REMOVED
     timeSignature: "4/4", oscillatorType: "triangle",
     metronomeVolume: 0.4, loopToggle: false, metronomeAudioToggle: false,
     inputMode: "chords", chordInput: "C G Am F Em(2) G(2) C",
     scaleDegreeInput: "I IV V I vi ii V I", songKey: "C", keyMode: "ionian",
-    // enableNoteRangeVoicing: false, // REMOVED
-    minNoteVoicing: "C3", maxNoteVoicing: "C5"
+    rangeStartMidi: DEFAULT_MIN_MIDI_RANGE_START, // e.g., 48 (C3)
+    rangeLength: DEFAULT_RANGE_LENGTH, // e.g., 24 (2 octaves)
 };

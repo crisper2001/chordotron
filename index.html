@@ -140,18 +140,19 @@
                             <input type="range" id="metronomeVolume" value="0.4" min="0" max="1" step="0.01">
                         </div>
 
-                        <div class="control-group voicing-pitch-range-group"> <!-- Changed h3 and class -->
+                        <div class="control-group voicing-pitch-range-group">
                             <h3>Chord Pitch Range</h3>
-                            <!-- "Enable Note Range" checkbox removed -->
-                            <div class="voicing-range-inputs">
-                                <div>
-                                    <label for="minNoteVoicing">Min Note (e.g., C3):</label>
-                                    <input type="text" id="minNoteVoicing" value="C3"> <!-- disabled removed -->
-                                </div>
-                                <div>
-                                    <label for="maxNoteVoicing">Max Note (e.g., C5):</label>
-                                    <input type="text" id="maxNoteVoicing" value="C5"> <!-- disabled removed -->
-                                </div>
+                            <div>
+                                <label for="rangeStartNoteSlider">Range Start: <span id="rangeStartNoteValue">C3</span></label>
+                                <!-- MIDI: A0=21, C8=108. Max start is C8 - 11 semitones (for min length 12) = 97 (A6) -->
+                                <input type="range" id="rangeStartNoteSlider" value="48" min="21" max="97" step="1">
+                            </div>
+                            <div>
+                                <label for="rangeLengthSlider">Range Length (semitones): <span id="rangeLengthValue">24</span></label>
+                                <input type="range" id="rangeLengthSlider" value="24" min="12" max="35" step="1">
+                            </div>
+                            <div class="range-display">
+                                Current Range: <span id="currentRangeDisplay">C3 - B4</span>
                             </div>
                         </div>
                     </div>

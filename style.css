@@ -425,3 +425,39 @@ label>span {
     .input-mode-selector { flex-direction: column; align-items: flex-start; gap: 8px; }
     .piano-keyboard-container { height: 70px; }
 }
+
+/* ... existing styles ... */
+
+.voicing-pitch-range-group div {
+    margin-bottom: 8px; /* Add some spacing between the new slider groups */
+}
+
+.voicing-pitch-range-group label {
+    display: flex; /* Align slider value span nicely */
+    justify-content: space-between;
+    align-items: center;
+}
+.voicing-pitch-range-group label > span { /* For the note name / length value */
+    font-weight: 500;
+    color: #007bff;
+    background-color: #e9ecef;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 0; /* Override general label>span margin-left if needed */
+    min-width: 30px; /* Ensure some space for value */
+    text-align: right;
+}
+
+.range-display {
+    font-size: 0.9em;
+    color: #495057;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #eee;
+}
+.range-display span {
+    font-weight: 600;
+    color: #0056b3;
+}
+
+/* ... rest of existing styles ... */

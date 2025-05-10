@@ -35,9 +35,12 @@ export const saveSettingsButton = document.getElementById('saveSettingsButton');
 export const loadSettingsFile = document.getElementById('loadSettingsFile');
 export const loadSettingsButton = document.getElementById('loadSettingsButton');
 
-// Voicing Range Elements
-export const minNoteVoicingInput = document.getElementById('minNoteVoicing');
-export const maxNoteVoicingInput = document.getElementById('maxNoteVoicing');
+// Chord Pitch Range Sliders
+export const rangeStartNoteSlider = document.getElementById('rangeStartNoteSlider');
+export const rangeStartNoteValueSpan = document.getElementById('rangeStartNoteValue');
+export const rangeLengthSlider = document.getElementById('rangeLengthSlider');
+export const rangeLengthValueSpan = document.getElementById('rangeLengthValue');
+export const currentRangeDisplaySpan = document.getElementById('currentRangeDisplay');
 
 // Piano Keyboard Element
 export const pianoKeyboardContainer = document.getElementById('pianoKeyboardContainer');
