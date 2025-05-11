@@ -1,9 +1,11 @@
 import * as DomElements from './dom-elements.js';
 import { applySettingsToUI } from './ui-helpers.js';
+import * as Constants from './constants.js';
 
-const AUTOSAVE_KEY = 'chordotronAutosaveData';
+const AUTOSAVE_KEY = 'chordotronAutosaveData_v2';
 
 export function collectCurrentSettings() {
+    const livePlayingChords = DomElements.triggerChordInputs.map(input => input.value);
     return {
         bpm: parseFloat(DomElements.bpmSlider.value),
         attack: parseFloat(DomElements.attackSlider.value),
@@ -18,6 +20,7 @@ export function collectCurrentSettings() {
         inputMode: document.querySelector('input[name="inputMode"]:checked').value,
         chordInput: DomElements.chordInputEl.value,
         scaleDegreeInput: DomElements.scaleDegreeInputEl.value,
+        livePlayingChords: livePlayingChords,
         songKey: DomElements.songKeySelect.value,
         keyMode: DomElements.keyModeSelect.value,
         rangeStartMidi: parseInt(DomElements.rangeStartNoteSlider.value, 10),
@@ -39,17 +42,13 @@ async function saveWithPicker(settingsJSON, suggestedName) {
         const writable = await handle.createWritable();
         await writable.write(settingsJSON);
         await writable.close();
-        console.log('Settings saved successfully to:', handle.name);
-        autosaveCurrentSettings(); // Also update autosave after manual save
+        autosaveCurrentSettings();
         return true;
     } catch (err) {
         if (err.name === 'AbortError') {
-            console.log('User cancelled the save file picker.');
         } else if (err.name === 'SecurityError') {
-            console.error('Security error with file picker. Ensure you are on HTTPS or localhost, and permissions are granted.', err);
             alert('Could not save: A security error occurred. This feature usually requires HTTPS or localhost.');
         } else {
-            console.error('Error saving settings with picker:', err);
             alert(`Could not save settings using the file picker: ${err.message}`);
         }
         return false;
@@ -72,8 +71,7 @@ function saveWithPromptAndDownload(settingsJSON, defaultFileName) {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    console.log('Settings downloaded as:', fileName);
-    autosaveCurrentSettings(); // Also update autosave after manual save
+    autosaveCurrentSettings();
 }
 
 export async function saveSettingsToFile() {
@@ -84,10 +82,8 @@ export async function saveSettingsToFile() {
     const supportsPicker = typeof window.showSaveFilePicker === 'function';
 
     if (supportsPicker) {
-        console.log('Attempting to save with File System Access API.');
         await saveWithPicker(settingsJSON, defaultFileName);
     } else {
-        console.warn('File System Access API (showSaveFilePicker) not supported or enabled. Falling back to download method.');
         saveWithPromptAndDownload(settingsJSON, defaultFileName);
     }
 }
@@ -99,15 +95,17 @@ export function loadSettingsFromFile(event) {
     reader.onload = (e) => {
         try {
             const settings = JSON.parse(e.target.result);
-            applySettingsToUI(settings);
-            autosaveCurrentSettings(); // Autosave after loading from file
+            const completeSettings = { ...Constants.defaultSettings, ...settings };
+            if (!completeSettings.livePlayingChords || completeSettings.livePlayingChords.length !== Constants.LIVE_PLAYING_KEYS.length) {
+                completeSettings.livePlayingChords = Array(Constants.LIVE_PLAYING_KEYS.length).fill("");
+            }
+            applySettingsToUI(completeSettings);
+            autosaveCurrentSettings(); 
         } catch (error) {
-            console.error("Error loading settings from file:", error);
             alert("Failed to load settings from file.");
         }
     };
     reader.onerror = (e) => {
-        console.error("Error reading file:", e);
         alert("Error reading file.");
     };
     reader.readAsText(file);
@@ -119,7 +117,6 @@ export function autosaveCurrentSettings() {
         const currentSettings = collectCurrentSettings();
         localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(currentSettings));
     } catch (e) {
-        console.warn("Autosave failed. LocalStorage might be full or disabled.", e);
     }
 }
 
@@ -128,20 +125,22 @@ export function loadAutosavedSettings() {
         const savedSettingsJSON = localStorage.getItem(AUTOSAVE_KEY);
         if (savedSettingsJSON) {
             const savedSettings = JSON.parse(savedSettingsJSON);
-            applySettingsToUI(savedSettings);
-            return true; // Indicates settings were loaded
+            const completeSettings = { ...Constants.defaultSettings, ...savedSettings };
+             if (!completeSettings.livePlayingChords || completeSettings.livePlayingChords.length !== Constants.LIVE_PLAYING_KEYS.length) {
+                completeSettings.livePlayingChords = Array(Constants.LIVE_PLAYING_KEYS.length).fill("");
+            }
+            applySettingsToUI(completeSettings);
+            return true; 
         }
     } catch (e) {
-        console.error("Error loading autosaved settings. Resetting to defaults.", e);
-        localStorage.removeItem(AUTOSAVE_KEY); // Clear corrupted data
+        localStorage.removeItem(AUTOSAVE_KEY); 
     }
-    return false; // Indicates no settings were loaded or an error occurred
+    return false; 
 }
 
 export function clearAutosavedSettings() {
     try {
         localStorage.removeItem(AUTOSAVE_KEY);
     } catch (e) {
-        console.warn("Failed to clear autosaved settings.", e);
     }
 }

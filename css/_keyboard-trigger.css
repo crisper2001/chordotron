@@ -1,0 +1,99 @@
+#livePlayingInputArea {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.trigger-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 10px;
+    padding-top: 5px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.trigger-input-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.trigger-key-label {
+    font-weight: bold;
+    color: #3A7CA5;
+    min-width: 15px;
+    text-align: right;
+    font-size: 0.95em;
+}
+
+.trigger-chord-input {
+    flex-grow: 1;
+    margin-top: 0;
+}
+
+
+.control-group.timing-group.disabled-in-live-mode,
+.control-group.sound-options-group.disabled-in-live-mode #metronomeVolumeLabel,
+.control-group.sound-options-group.disabled-in-live-mode #metronomeVolume,
+.playback-footer.disabled-for-live-playing .main-playback-wrapper,
+.playback-footer.disabled-for-live-playing .chord-context-display {
+    opacity: 0.4;
+    pointer-events: none;
+}
+.control-group.timing-group.disabled-in-live-mode *,
+.control-group.sound-options-group.disabled-in-live-mode #metronomeVolumeLabel *,
+.control-group.sound-options-group.disabled-in-live-mode #metronomeVolumeValue {
+     color: #999 !important;
+     border-color: #e0e0e0 !important;
+}
+.control-group.timing-group.disabled-in-live-mode input,
+.control-group.timing-group.disabled-in-live-mode select,
+.control-group.sound-options-group.disabled-in-live-mode #metronomeVolume {
+    background-color: #f5f5f5 !important;
+}
+
+
+fieldset[disabled].live-playing-active .control-group:not(.sound-options-group),
+fieldset[disabled].live-playing-active .control-group.sound-options-group #metronomeVolumeLabel,
+fieldset[disabled].live-playing-active .control-group.sound-options-group #metronomeVolume {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+fieldset[disabled].live-playing-active .control-group label,
+fieldset[disabled].live-playing-active .control-group h3,
+fieldset[disabled].live-playing-active .control-group span:not(#masterGainValue) {
+    color: #777c81 !important;
+}
+fieldset[disabled].live-playing-active .control-group input:not(#masterGain),
+fieldset[disabled].live-playing-active .control-group select:not(#masterGain) {
+    background-color: #f0f0f0 !important;
+    border-color: #ccc !important;
+}
+
+/* Keep Master Gain interactive unless its direct parent fieldset is disabled for other reasons */
+fieldset[disabled].live-playing-active .control-group.sound-options-group #masterGain,
+fieldset[disabled].live-playing-active .control-group.sound-options-group label[for="masterGain"],
+fieldset[disabled].live-playing-active .control-group.sound-options-group #masterGainValue {
+    opacity: 1;
+    pointer-events: auto;
+    color: inherit !important;
+    background-color: transparent !important;
+}
+/* But if masterGain itself is disabled, it should look disabled */
+#masterGain:disabled {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+}
+label[for="masterGain"].disabled-text,
+#masterGainValue.disabled-text {
+    color: #777c81 !important;
+    opacity: 0.5;
+}
+
+
+.playback-footer.disabled-for-live-playing #currentChordDisplay {
+    opacity: 1; 
+}

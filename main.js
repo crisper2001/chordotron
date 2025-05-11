@@ -7,8 +7,11 @@ import { startPlayback, stopPlayback } from './playback-scheduler.js';
 import * as KeyboardUI from './keyboard-ui.js';
 import * as MusicTheory from './music-theory.js';
 import * as ADSRVisualizer from './adsr-visualizer.js';
+import * as AudioCore from './audio-core.js';
 
-const HELP_MODAL_SHOWN_KEY = 'chordotronHelpShown';
+const HELP_MODAL_SHOWN_KEY = 'chordotronHelpShown_v3';
+const REFERENCE_OCTAVE_FOR_LIVE_PLAYING = 2;
+
 
 function attachAutosaveListeners() {
     const elementsToAutosave = [
@@ -17,20 +20,20 @@ function attachAutosaveListeners() {
         DomElements.oscillatorTypeEl, DomElements.metronomeVolumeSlider, DomElements.loopToggle,
         DomElements.metronomeAudioToggle, DomElements.chordInputEl, DomElements.scaleDegreeInputEl,
         DomElements.songKeySelect, DomElements.keyModeSelect, DomElements.rangeStartNoteSlider,
-        DomElements.rangeLengthSlider, DomElements.masterGainSlider, DomElements.synthGainSlider
+        DomElements.rangeLengthSlider, DomElements.masterGainSlider, DomElements.synthGainSlider,
+        ...DomElements.triggerChordInputs
     ];
 
     elementsToAutosave.forEach(element => {
         if (element) {
-            const eventType = (element.type === 'range' || element.tagName === 'TEXTAREA') ? 'input' : 'change';
+            const eventType = (element.type === 'range' || element.tagName === 'TEXTAREA' || element.classList.contains('trigger-chord-input')) ? 'input' : 'change';
             element.addEventListener(eventType, SettingsManager.autosaveCurrentSettings);
         }
     });
 
     DomElements.inputModeRadios.forEach(radio => {
-        radio.addEventListener('change', () => {
-            DomElements.chordNameInputArea.style.display = radio.value === 'chords' ? 'block' : 'none';
-            DomElements.scaleDegreeInputArea.style.display = radio.value === 'degrees' ? 'block' : 'none';
+        radio.addEventListener('change', (event) => {
+            UIHelpers.updateUIModeVisuals(event.target.value);
             SettingsManager.autosaveCurrentSettings();
         });
     });
@@ -38,6 +41,9 @@ function attachAutosaveListeners() {
 
 
 DomElements.playStopButton.addEventListener('click', () => {
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') return;
+
     if (AppState.sequencePlaying) {
         stopPlayback(true);
     } else {
@@ -46,6 +52,8 @@ DomElements.playStopButton.addEventListener('click', () => {
 });
 
 DomElements.timeSignatureSelect.addEventListener('input', () => {
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') return;
     if (!AppState.sequencePlaying) {
         const beats = UIHelpers.getBeatsPerMeasure();
         UIHelpers.updateBeatIndicatorsVisibility(beats);
@@ -56,6 +64,30 @@ document.addEventListener('keydown', (event) => {
     if (event.target.tagName === 'TEXTAREA' || event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') {
         return;
     }
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+
+    if (currentInputMode === 'livePlaying') {
+        if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key)) {
+            event.preventDefault();
+            if (!AppState.activeLiveKeys.has(event.key)) {
+                
+                AppState.activeLiveKeys.forEach(existingKey => {
+                     AudioCore.stopLiveFrequencies(existingKey, 0.01); 
+                });
+                AppState.activeLiveKeys.clear();
+
+                AppState.activeLiveKeys.add(event.key);
+                UIHelpers.updateLivePlayingControlsDisabled(true); 
+                const triggerIndex = Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP[event.key];
+                const chordString = DomElements.triggerChordInputs[triggerIndex].value;
+                if (chordString && chordString.trim() !== "") {
+                    playLiveChord(chordString, event.key);
+                }
+            }
+        }
+        return; 
+    }
+
     switch (event.key.toLowerCase()) {
         case 'p':
             event.preventDefault();
@@ -65,18 +97,98 @@ document.addEventListener('keydown', (event) => {
             event.preventDefault();
             if (DomElements.loopToggle) {
                 DomElements.loopToggle.checked = !DomElements.loopToggle.checked;
-                DomElements.loopToggle.dispatchEvent(new Event('change')); // Trigger change for autosave
+                DomElements.loopToggle.dispatchEvent(new Event('change')); 
             }
             break;
         case 'm':
             event.preventDefault();
             if (DomElements.metronomeAudioToggle) {
                 DomElements.metronomeAudioToggle.checked = !DomElements.metronomeAudioToggle.checked;
-                DomElements.metronomeAudioToggle.dispatchEvent(new Event('change')); // Trigger change for autosave & audio logic
+                DomElements.metronomeAudioToggle.dispatchEvent(new Event('change')); 
             }
             break;
     }
 });
+
+document.addEventListener('keyup', (event) => {
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') {
+        if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key)) {
+            event.preventDefault();
+            if (AppState.activeLiveKeys.has(event.key)) { 
+                AudioCore.stopLiveFrequencies(event.key); 
+                AppState.activeLiveKeys.delete(event.key);
+                if (AppState.activeLiveKeys.size === 0) {
+                    KeyboardUI.clearKeyboardHighlights();
+                    UIHelpers.updateChordContextDisplay(null, null); 
+                    UIHelpers.updateLivePlayingControlsDisabled(false); 
+                }
+            }
+        }
+    }
+});
+
+
+function playLiveChord(chordString, keyIdentifier) {
+    if (AppState.audioCtx.state === 'suspended') {
+        AppState.audioCtx.resume().catch(e => {});
+    }
+
+    let mainChordPart = chordString;
+    let bassNoteString = null; 
+    const slashMatch = chordString.match(/^(.*)\/([A-Ga-g][#b]?)$/);
+
+    if (slashMatch && slashMatch[1] && slashMatch[2]) {
+        mainChordPart = slashMatch[1];
+        bassNoteString = slashMatch[2]; 
+    }
+    
+    const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(mainChordPart, REFERENCE_OCTAVE_FOR_LIVE_PLAYING);
+    
+    const minMidiTarget = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    const rangeLength = parseInt(DomElements.rangeLengthSlider.value, 10);
+    const maxMidiTarget = minMidiTarget + rangeLength - 1;
+
+    const voicingResult = MusicTheory.voiceFrequenciesInRange(
+        initialFrequencies,
+        rootNoteName,
+        minMidiTarget,
+        maxMidiTarget,
+        bassNoteString 
+    );
+
+
+    if (voicingResult.frequencies && voicingResult.frequencies.length > 0) {
+        const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
+        const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
+        const combinedGainForChord = currentSynthGain * currentMasterGain;
+        const currentADSR = { 
+            attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
+            decay: Math.max(0.01, parseFloat(DomElements.decaySlider.value)),
+            sustain: parseFloat(DomElements.sustainSlider.value),
+            release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value)) 
+        };
+        const currentOscillatorType = DomElements.oscillatorTypeEl.value;
+
+        AudioCore.startLiveFrequencies( 
+            voicingResult.frequencies, 
+            AppState.audioCtx.currentTime, 
+            currentADSR, 
+            currentOscillatorType, 
+            combinedGainForChord,
+            keyIdentifier
+        );
+        
+        UIHelpers.updateChordContextDisplay(null, [{ name: chordString }]); 
+        const midiNotesToHighlight = voicingResult.frequencies.map(freq => MusicTheory.frequencyToMidi(freq));
+        KeyboardUI.highlightChordOnKeyboard(midiNotesToHighlight);
+
+    } else {
+        UIHelpers.updateChordContextDisplay(null, [{ name: chordString + " (err)" }]);
+        KeyboardUI.clearKeyboardHighlights();
+    }
+}
+
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new song and reset all settings to their defaults? This will also clear your autosaved project.")) {
@@ -84,6 +196,7 @@ DomElements.restoreDefaultsButton.addEventListener('click', () => {
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
         updateKeyboardRangeFromSliders();
         updateADSRVisualizerFromSliders();
+        UIHelpers.updateUIModeVisuals(Constants.defaultSettings.inputMode);
         SettingsManager.autosaveCurrentSettings();
     }
 });
@@ -95,6 +208,8 @@ DomElements.loadSettingsFile.addEventListener('change', (event) => {
     setTimeout(() => {
         updateKeyboardRangeFromSliders();
         updateADSRVisualizerFromSliders();
+        const currentMode = document.querySelector('input[name="inputMode"]:checked').value;
+        UIHelpers.updateUIModeVisuals(currentMode);
     }, 50);
 });
 
@@ -167,7 +282,10 @@ function updateADSRVisualizerFromSliders() {
 });
 
 DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') return;
     if (!AppState.sequencePlaying) return;
+
 
     if (!event.target.checked) {
         const now = AppState.audioCtx.currentTime;
@@ -178,7 +296,6 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
                     activeSound.gainNode.gain.cancelScheduledValues(now);
                     activeSound.gainNode.gain.linearRampToValueAtTime(0, now + 0.02);
                 } catch (e) {
-                    console.warn("Could not immediately silence metronome sound:", e);
                 }
             }
         });
@@ -219,7 +336,6 @@ function initHelpGuideModalLogic() {
             localStorage.setItem(HELP_MODAL_SHOWN_KEY, 'true');
         }
     } catch (e) {
-        console.warn("Could not access localStorage for help modal status.", e);
         openHelpModal();
     }
 }
@@ -231,16 +347,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const loadedFromAutosave = SettingsManager.loadAutosavedSettings();
     if (!loadedFromAutosave) {
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
-        SettingsManager.autosaveCurrentSettings();
     }
     
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
-    DomElements.chordNameInputArea.style.display = currentInputMode === 'chords' ? 'block' : 'none';
-    DomElements.scaleDegreeInputArea.style.display = currentInputMode === 'degrees' ? 'block' : 'none';
+    UIHelpers.updateUIModeVisuals(currentInputMode);
+    
+    if (!loadedFromAutosave) {
+         SettingsManager.autosaveCurrentSettings(); 
+    }
 
-    DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
-    DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
-    DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
 
     KeyboardUI.initKeyboard();
     updateKeyboardRangeFromSliders();
@@ -253,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initAudioContext() {
         if (AppState.audioCtx.state === 'suspended') {
-            AppState.audioCtx.resume().catch(e => console.error("Error resuming AudioContext:", e));
+            AppState.audioCtx.resume().catch(e => {});
         }
     }
     document.body.addEventListener('click', initAudioContext, { once: true });

@@ -6,6 +6,9 @@ export let originalChords = [];
 export let currentChordIndex = 0;
 export let currentBeatInSequenceForVisualMetronome = 0;
 export let nextEventTime = 0;
+export const livePlayingAudioNodes = {};
+export const activeLiveKeys = new Set();
+
 
 export function setActiveOscillators(newOscillators) { activeOscillators = newOscillators; }
 export function setCurrentSchedulerTimeoutId(id) { currentSchedulerTimeoutId = id; }

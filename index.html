@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/_base.css">
     <link rel="stylesheet" href="css/_layout.css">
     <link rel="stylesheet" href="css/_components.css">
+    <link rel="stylesheet" href="css/_keyboard-trigger.css">
     <link rel="stylesheet" href="css/_modal.css">
     <link rel="stylesheet" href="css/_responsive.css">
 </head>
@@ -18,7 +19,7 @@
         <header>
             <h1>Chordotron</h1>
             <div class="byline">by Crisper (<span style="font-size: xx-small;">and Gemini 2.5 Pro</span>)</div>
-            <div class="version">v0.9.0</div>
+            <div class="version">v0.9.8</div>
         </header>
 
         <fieldset id="appActionsFieldset">
@@ -40,6 +41,7 @@
                     <div class="input-mode-selector">
                         <label><input type="radio" name="inputMode" value="chords" checked> 🎵 Chord Names</label>
                         <label><input type="radio" name="inputMode" value="degrees"> 🎼 Scale Degrees</label>
+                        <label><input type="radio" name="inputMode" value="livePlaying"> 🎹 Live Playing</label>
                     </div>
 
                     <div id="chordNameInputArea">
@@ -84,6 +86,60 @@
                         <label for="scaleDegreeInput">Scale Degrees:</label>
                         <textarea id="scaleDegreeInput" rows="15" style="resize: none;"></textarea>
                     </div>
+                    
+                    <div id="livePlayingInputArea" style="display:none;">
+                        <label>Live Playing Chords (Keys: 1, 2, ..., 9, 0, -, =):</label>
+                        <div class="trigger-grid-container">
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">1</span>
+                                <input type="text" id="triggerChord0" class="trigger-chord-input" placeholder="e.g. Cm7">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">2</span>
+                                <input type="text" id="triggerChord1" class="trigger-chord-input" placeholder="e.g. F7">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">3</span>
+                                <input type="text" id="triggerChord2" class="trigger-chord-input" placeholder="e.g. Bbmaj7">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">4</span>
+                                <input type="text" id="triggerChord3" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">5</span>
+                                <input type="text" id="triggerChord4" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">6</span>
+                                <input type="text" id="triggerChord5" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">7</span>
+                                <input type="text" id="triggerChord6" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">8</span>
+                                <input type="text" id="triggerChord7" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">9</span>
+                                <input type="text" id="triggerChord8" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">0</span>
+                                <input type="text" id="triggerChord9" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">-</span>
+                                <input type="text" id="triggerChord10" class="trigger-chord-input">
+                            </div>
+                            <div class="trigger-input-group">
+                                <span class="trigger-key-label">=</span>
+                                <input type="text" id="triggerChord11" class="trigger-chord-input">
+                            </div>
+                        </div>
+                    </div>
                 </fieldset>
             </section>
 
@@ -91,7 +147,7 @@
                 <fieldset id="parametersControlsFieldset">
                     <h2>⚙️ Parameters</h2>
                     <div class="parameters-columns">
-                        <div class="control-group timing-group">
+                        <div class="control-group timing-group" id="timingParametersGroup">
                             <h3>⏱️ Timing</h3>
                             <label for="bpm">BPM: <span id="bpmValue">120</span></label>
                             <input type="range" id="bpm" value="120" min="30" max="300" step="1">
@@ -119,7 +175,7 @@
                                     <option value="triangle" selected>Triangle</option>
                                 </select>
                             </div>
-
+                            
                             <div class="adsr-section">
                                 <label class="section-sub-label">Envelope (ADSR) & Gain:</label>
                                 <div class="adsr-canvas-container">
@@ -128,32 +184,27 @@
                                 <div class="adsr-knobs-container">
                                     <div class="knob-control">
                                         <label for="attack" class="knob-label-top">Attack</label>
-                                        <input type="range" id="attack" class="adsr-knob" value="0.05" min="0.01"
-                                            max="2" step="0.01" orient="vertical">
+                                        <input type="range" id="attack" class="adsr-knob" value="0.05" min="0.01" max="2" step="0.01" orient="vertical">
                                         <span id="attackValue" class="knob-value">0.05</span>
                                     </div>
                                     <div class="knob-control">
                                         <label for="decay" class="knob-label-top">Decay</label>
-                                        <input type="range" id="decay" class="adsr-knob" value="0.1" min="0.01" max="2"
-                                            step="0.01" orient="vertical">
+                                        <input type="range" id="decay" class="adsr-knob" value="0.1" min="0.01" max="2" step="0.01" orient="vertical">
                                         <span id="decayValue" class="knob-value">0.1</span>
                                     </div>
                                     <div class="knob-control">
                                         <label for="sustain" class="knob-label-top">Sustain</label>
-                                        <input type="range" id="sustain" class="adsr-knob" value="0.7" min="0" max="1"
-                                            step="0.01" orient="vertical">
+                                        <input type="range" id="sustain" class="adsr-knob" value="0.7" min="0" max="1" step="0.01" orient="vertical">
                                         <span id="sustainValue" class="knob-value">0.7</span>
                                     </div>
                                     <div class="knob-control">
                                         <label for="release" class="knob-label-top">Release</label>
-                                        <input type="range" id="release" class="adsr-knob" value="0.3" min="0.01"
-                                            max="3" step="0.01" orient="vertical">
+                                        <input type="range" id="release" class="adsr-knob" value="0.3" min="0.01" max="3" step="0.01" orient="vertical">
                                         <span id="releaseValue" class="knob-value">0.3</span>
                                     </div>
                                     <div class="knob-control">
                                         <label for="synthGain" class="knob-label-top">Gain</label>
-                                        <input type="range" id="synthGain" class="adsr-knob" value="0.5" min="0" max="1"
-                                            step="0.01" orient="vertical">
+                                        <input type="range" id="synthGain" class="adsr-knob" value="0.5" min="0" max="1" step="0.01" orient="vertical">
                                         <span id="synthGainValue" class="knob-value">0.5</span>
                                     </div>
                                 </div>
@@ -161,25 +212,22 @@
                         </div>
 
 
-                        <div class="control-group sound-options-group">
+                        <div class="control-group sound-options-group" id="soundOptionsGroup"> 
                             <h3>🔊 Master & Metronome</h3>
                             <label for="masterGain">Master Gain: <span id="masterGainValue">0.5</span></label>
                             <input type="range" id="masterGain" value="0.5" min="0" max="1" step="0.01">
-                            <label for="metronomeVolume">Metronome Vol Adj: <span
-                                    id="metronomeVolumeValue">0.8</span></label>
+                            <label for="metronomeVolume" id="metronomeVolumeLabel">Metronome Vol Adj: <span id="metronomeVolumeValue">0.8</span></label>
                             <input type="range" id="metronomeVolume" value="0.8" min="0" max="1" step="0.01">
                         </div>
 
-                        <div class="control-group voicing-pitch-range-group">
+                        <div class="control-group voicing-pitch-range-group" id="pitchRangeParametersGroup">
                             <h3>↔️ Pitch Range</h3>
                             <div>
-                                <label for="rangeStartNoteSlider">Range Start: <span
-                                        id="rangeStartNoteValue">C3</span></label>
+                                <label for="rangeStartNoteSlider">Range Start: <span id="rangeStartNoteValue">C3</span></label>
                                 <input type="range" id="rangeStartNoteSlider" value="48" min="36" max="72" step="1">
                             </div>
                             <div>
-                                <label for="rangeLengthSlider">Range Length (semitones): <span
-                                        id="rangeLengthValue">24</span></label>
+                                <label for="rangeLengthSlider">Range Length (semitones): <span id="rangeLengthValue">24</span></label>
                                 <input type="range" id="rangeLengthSlider" value="24" min="12" max="24" step="1">
                             </div>
                             <div class="range-display">
@@ -196,13 +244,13 @@
             </div>
         </section>
 
-        <footer class="playback-footer">
-            <div class="chord-context-display prev-chord">
+        <footer class="playback-footer" id="playbackFooter">
+            <div class="chord-context-display prev-chord" id="prevChordDisplayContainer">
                 <div class="context-chord" id="prevChordDisplay">⏮️ Prev: --</div>
             </div>
 
-            <div class="main-playback-wrapper">
-                <div class="main-playback-controls">
+            <div class="main-playback-wrapper" id="mainPlaybackWrapper">
+                <div class="main-playback-controls" id="mainPlaybackControls">
                     <div class="playback-option-toggle button-style-toggle">
                         <input type="checkbox" id="loopToggle" name="loopToggle">
                         <label for="loopToggle" class="toggle-button">🔁 Loop (L)</label>
@@ -214,14 +262,14 @@
                     </div>
                 </div>
 
-                <div class="main-playback-info">
+                <div class="main-playback-info" id="mainPlaybackInfo">
                     <div id="currentChordDisplay">🎶 Playing: --</div>
                     <div id="beatIndicatorContainer">
                     </div>
                 </div>
             </div>
 
-            <div class="chord-context-display next-chord">
+            <div class="chord-context-display next-chord" id="nextChordDisplayContainer">
                 <div class="context-chord" id="nextChordDisplay">Next: ⏭️ --</div>
             </div>
         </footer>
@@ -229,125 +277,106 @@
 
     <div id="helpModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
         <div class="modal-content">
-            <button id="modalCloseButton" class="modal-close-button" title="Close Help"
-                aria-label="Close help dialog">×</button>
+            <button id="modalCloseButton" class="modal-close-button" title="Close Help" aria-label="Close help dialog">×</button>
             <h2 id="helpModalTitle">Chordotron - Quick Start</h2>
-
+            
             <div class="modal-section">
                 <h3>What is Chordotron?</h3>
-                <p><i>Chordotron</i> is a web-based tool to quickly prototype, play, and experiment with chord
-                    progressions. You can input chords directly or use scale degrees, adjust timing, synth sounds, and
-                    playback parameters.</p>
+                <p><i>Chordotron</i> is a web-based tool to quickly prototype, play, and experiment with chord progressions. You can input chords directly, use scale degrees, or trigger chords live with your keyboard.</p>
             </div>
 
             <div class="modal-section">
-                <h3>1. Inputting Your Progression</h3>
+                <h3>1. Inputting Your Progression / Chords</h3>
                 <p>Choose your input method:</p>
                 <ul>
-                    <li><strong>🎵 Chord Names:</strong> Enter standard chord notation.
+                    <li><strong>🎵 Chord Names:</strong> Enter standard chord notation for sequential playback.
                         <ul>
                             <li>Example: <code>E(8) C#m(8) A(8) B(8)</code></li>
-                            <li><code>(4)</code> denotes the duration in beats (optional, defaults to beats per
-                                measure).</li>
-                            <li>Slash chords like <code>G/B</code> (G major with B in the bass) are supported.</li>
-                            <li>Supported qualities include:
-                                <code>m, maj, M, dim, aug, sus4, sus2, 7, maj7, m7, dim7, o, ø, +</code>, and more
-                                complex extensions (9, 11, 13).
-                            </li>
+                            <li><code>(4)</code> denotes the duration in beats (optional, defaults to beats per measure).</li>
+                            <li>Slash chords like <code>G/B</code> are supported.</li>
                         </ul>
                     </li>
-                    <li><strong>🎼 Scale Degrees:</strong> Enter Roman numerals relative to a chosen key and mode.
+                    <li><strong>🎼 Scale Degrees:</strong> Enter Roman numerals relative to a chosen key and mode for sequential playback.
                         <ul>
                             <li>Example: <code>I(2) V(2) vi(2) iii(2) IV(2) I(2) IV(2) V(2)</code> in D Major.</li>
-                            <li>Set the <strong>Song Key</strong> (e.g., C, G#, Eb) and <strong>Mode</strong> (e.g.,
-                                Ionian/Major, Aeolian/Minor, Dorian).</li>
-                            <li>Accidentals: <code>bII</code>, <code>#IV</code>.</li>
-                            <li>Slash chords (applied chords or bass notes): <code>V/iii</code>.</li>
-                            <li>Explicit qualities: <code>Im7</code>, <code>V7</code>. If no quality is given, a
-                                diatonic quality is assumed.</li>
+                            <li>Set <strong>Song Key</strong> and <strong>Mode</strong>.</li>
+                        </ul>
+                    </li>
+                    <li><strong>🎹 Live Playing:</strong> Assign up to 12 chords to keyboard keys (1-9, 0, -, =) for immediate playback.
+                        <ul>
+                            <li>Enter a chord (e.g., <code>Am7</code>, <code>G/B</code>) into one of the 12 input slots.</li>
+                            <li>Press and hold the corresponding key on your computer keyboard (1, 2, ..., 0, -, =) to play the chord. The chord will sound as long as the key is held.</li>
+                            <li>In this mode, BPM, Time Signature, Loop, Play/Stop, and Metronome controls are disabled.</li>
                         </ul>
                     </li>
                 </ul>
+                 <p>Common chord qualities: <code>m, maj, M, dim, aug, sus4, sus2, 7, maj7, m7, dim7, o, ø, +</code>, and extensions (9, 11, 13).</p>
             </div>
+
 
             <div class="modal-section">
                 <h3>2. Setting Parameters (⚙️)</h3>
                 <ul>
-                    <li><strong>⏱️ Timing:</strong>
+                    <li><strong>⏱️ Timing (Chord/Degree Modes Only):</strong>
                         <ul>
                             <li><strong>BPM:</strong> Beats Per Minute.</li>
-                            <li><strong>Time Signature:</strong> e.g., 4/4, 3/4, 6/8. This affects default chord
-                                duration and metronome.</li>
+                            <li><strong>Time Signature:</strong> e.g., 4/4, 3/4, 6/8. Affects default chord duration and metronome.</li>
                         </ul>
                     </li>
-                    <li><strong>🎹 Synth:</strong>
+                    <li><strong>🎹 Synth (All Modes):</strong>
                         <ul>
                             <li><strong>Oscillator:</strong> Waveform (Sine, Square, Sawtooth, Triangle).</li>
-                            <li><strong>Envelope (ADSR):</strong> Attack, Decay, Sustain, Release times for the sound's
-                                shape. Use vertical sliders.</li>
+                            <li><strong>Envelope (ADSR):</strong> Attack, Decay, Sustain, Release times for the sound's shape.</li>
                             <li><strong>Gain:</strong> Volume of the synth sound itself.</li>
                         </ul>
                     </li>
                     <li><strong>🔊 Master & Metronome:</strong>
                         <ul>
-                            <li><strong>Master Gain:</strong> Overall output volume.</li>
-                            <li><strong>Metronome Vol Adj:</strong> Adjusts metronome volume relative to master gain.
-                            </li>
+                            <li><strong>Master Gain (All Modes):</strong> Overall output volume.</li>
+                            <li><strong>Metronome Vol Adj (Chord/Degree Modes Only):</strong> Adjusts metronome volume relative to master gain.</li>
                         </ul>
                     </li>
-                    <li><strong>↔️ Pitch Range:</strong>
+                    <li><strong>↔️ Pitch Range (All Modes):</strong>
                         <ul>
-                            <li><strong>Range Start & Length:</strong> Defines the allowed MIDI note range for voiced
-                                chords. The keyboard below will highlight this range. Chords are voiced to fit within
-                                these boundaries.</li>
+                            <li><strong>Range Start & Length:</strong> Defines the allowed MIDI note range for voiced chords. Chords are voiced to fit within these boundaries.</li>
                         </ul>
                     </li>
                 </ul>
             </div>
 
             <div class="modal-section">
-                <h3>3. Playback Controls (Footer)</h3>
+                <h3>3. Playback Controls (Footer - Chord/Degree Modes Only)</h3>
                 <ul>
-                    <li><strong>▶️ Play / ⏹️ Stop (P):</strong> Starts or stops playback. (Keyboard Shortcut:
-                        <code>P</code> key)
-                    </li>
-                    <li><strong>🔁 Loop (L):</strong> Toggles looping of the entire progression. (Keyboard Shortcut:
-                        <code>L</code> key)
-                    </li>
-                    <li><strong>🥁 Metro (M):</strong> Toggles the audible metronome click. (Keyboard Shortcut:
-                        <code>M</code> key)
-                    </li>
+                    <li><strong>▶️ Play / ⏹️ Stop (P):</strong> Starts or stops sequential playback.</li>
+                    <li><strong>🔁 Loop (L):</strong> Toggles looping of the progression.</li>
+                    <li><strong>🥁 Metro (M):</strong> Toggles the audible metronome click.</li>
                     <li><strong>Chord Display:</strong> Shows previous, current, and next chords.</li>
-                    <li><strong>Beat Indicators:</strong> Visual cue for beats in the current measure.</li>
+                    <li><strong>Beat Indicators:</strong> Visual cue for beats.</li>
+                    <li><em>(Note: These controls are disabled in Live Playing mode.)</em></li>
                 </ul>
             </div>
-            <div class="modal-section">
-                <h3>4. Keyboard (Middle Section)</h3>
-                <p>The piano keyboard visualizes the notes being played for the current chord and highlights the
-                    selected <strong>Pitch Range</strong>.</p>
+             <div class="modal-section">
+                <h3>4. Keyboard (Middle Section - All Modes)</h3>
+                 <p>The piano keyboard visualizes the notes being played for the current chord. In Chord/Degree modes, it also highlights the selected <strong>Pitch Range</strong>. In Live Playing mode, the range defined in Parameters is used for voicing.</p>
             </div>
 
             <div class="modal-section">
-                <h3>5. File Operations (Top Bar)</h3>
+                <h3>5. File Operations (Top Bar - All Modes)</h3>
                 <ul>
                     <li><strong>📄 New:</strong> Resets all settings and inputs to default.</li>
                     <li><strong>📁 Load:</strong> Load a previously saved song/settings (<code>.json</code> file).</li>
-                    <li><strong>💾 Save:</strong> Save your current inputs and all parameter settings as a
-                        <code>.json</code> file.
-                    </li>
+                    <li><strong>💾 Save:</strong> Save your current inputs and all parameter settings as a <code>.json</code> file.</li>
                     <li><strong>❓ Help:</strong> Shows this guide again.</li>
                 </ul>
             </div>
-            <div class="modal-section">
+             <div class="modal-section">
                 <h3>Tips & Shortcuts</h3>
                 <ul>
-                    <li><strong><code>P</code> key:</strong> Play/Stop.</li>
-                    <li><strong><code>L</code> key:</strong> Toggle Loop.</li>
-                    <li><strong><code>M</code> key:</strong> Toggle Metronome.</li>
-                    <li>You can play a <strong>selection</strong> of your input by highlighting text in the Chord/Degree
-                        input area before pressing Play.</li>
-                    <li>Experiment with ADSR and Oscillator types to create different timbres!</li>
-                    <li>The pitch range affects how chords are voiced. Wider ranges give more options.</li>
+                    <li><strong><code>P</code> key:</strong> Play/Stop (Chord/Degree modes).</li>
+                    <li><strong><code>L</code> key:</strong> Toggle Loop (Chord/Degree modes).</li>
+                    <li><strong><code>M</code> key:</strong> Toggle Metronome (Chord/Degree modes).</li>
+                    <li><strong><code>1</code> to <code>=</code> keys (Hold):</strong> Trigger assigned chords (Live Playing mode).</li>
+                    <li>You can play a <strong>selection</strong> of your input by highlighting text in the Chord/Degree input area before pressing Play.</li>
                 </ul>
             </div>
         </div>

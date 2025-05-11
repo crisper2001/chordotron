@@ -7,7 +7,6 @@ import * as KeyboardUI from './keyboard-ui.js';
 import * as Constants from './constants.js';
 
 const REFERENCE_OCTAVE_FOR_PARSING = 2;
-// const DEBUG_SCHEDULER_DURATION = false; // No longer needed
 
 function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
@@ -36,7 +35,7 @@ function createMetronomeTick(time, isDownbeat) {
 
 
     if (DomElements.metronomeAudioToggle.checked && finalMetronomeGain > 0) {
-        AudioCore.playFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain, 'metronome');
+        AudioCore.playTimedFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain, 'metronome');
     }
     AppState.setCurrentBeatInSequenceForVisualMetronome(AppState.currentBeatInSequenceForVisualMetronome + 1);
 }
@@ -50,7 +49,7 @@ function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorTy
     const frequencies = chordObject.frequencies;
 
     if (frequencies && frequencies.length > 0) {
-        AudioCore.playFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, combinedSynthAndMasterGain);
+        AudioCore.playTimedFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, combinedSynthAndMasterGain, 'chord');
     }
     
     const displayDelay = (scheduleTime - AppState.audioCtx.currentTime) * 1000;
@@ -78,14 +77,30 @@ function scheduleNextEvent(isSelectionPlayback) {
     if (AppState.currentChordIndex >= AppState.originalChords.length) {
         if (isSelectionPlayback || !DomElements.loopToggle.checked) {
             const currentADSR = {
+                attack: 0.01, 
+                decay: 0.01,
+                sustain: 0,
                 release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value))
             };
-            const lastSoundTheoreticalEndTime = AppState.nextEventTime + currentADSR.release;
-            const uiResetDelay = (lastSoundTheoreticalEndTime - AppState.audioCtx.currentTime + 0.2) * 1000;
+            let lastChordDuration = 0;
+            if (AppState.originalChords.length > 0) {
+                const lastChordObject = AppState.originalChords[AppState.originalChords.length - 1];
+                const currentBPM = parseFloat(DomElements.bpmSlider.value);
+                const currentTimeSignature = DomElements.timeSignatureSelect.value;
+                const quarterNoteDuration = 60 / currentBPM;
+                const timeSigBeatFactor = UIHelpers.getBeatDurationFactorForTimeSignature(currentTimeSignature);
+                const actualSingleBeatDuration = quarterNoteDuration * timeSigBeatFactor;
+                lastChordDuration = lastChordObject.beats * actualSingleBeatDuration;
+            }
+            
+            const lastChordReleaseStartTime = AppState.nextEventTime - lastChordDuration; 
+            const lastSoundTheoreticalEndTime = lastChordReleaseStartTime + currentADSR.release;
+
+            const uiResetDelay = (lastSoundTheoreticalEndTime - AppState.audioCtx.currentTime + 0.1) * 1000; 
 
             AppState.setCurrentSchedulerTimeoutId(setTimeout(() => {
                 if (AppState.sequencePlaying) stopPlayback(true); 
-            }, Math.max(0, uiResetDelay)));
+            }, Math.max(0, uiResetDelay))); 
             return;
         } else { 
             AppState.setCurrentChordIndex(0);
@@ -137,7 +152,7 @@ function scheduleNextEvent(isSelectionPlayback) {
 
 export function startPlayback() {
     if (AppState.audioCtx.state === 'suspended') {
-        AppState.audioCtx.resume().catch(e => console.error("Error resuming AudioContext:", e));
+        AppState.audioCtx.resume().catch(e => {});
     }
 
     const defaultBeatsPerChord = UIHelpers.getBeatsPerMeasure();
@@ -178,9 +193,10 @@ export function startPlayback() {
     const maxMidiTarget = minMidiTarget + rangeLength - 1;
     
     let rangeIsValid = true;
-    if (minMidiTarget < Constants.MIDI_C2 || 
-        maxMidiTarget > Constants.MIDI_B5 || 
-        minMidiTarget >= maxMidiTarget) {
+    if (minMidiTarget < Constants.MIDI_A0 || 
+        maxMidiTarget > Constants.MIDI_C8 || 
+        minMidiTarget >= maxMidiTarget ||
+        rangeLength < Constants.SEMITONES_IN_OCTAVE) {
         rangeIsValid = false; 
     }
 
@@ -245,15 +261,23 @@ export function stopPlayback(clearDisplay = true) {
     }
 
     const now = AppState.audioCtx.currentTime;
+    const releaseTimeFromUI = Math.max(0.01, parseFloat(DomElements.releaseSlider.value));
+
     AppState.activeOscillators.forEach(({ oscillator, gainNode }) => {
         try {
             gainNode.gain.cancelScheduledValues(now);
             gainNode.gain.setValueAtTime(gainNode.gain.value, now); 
-            gainNode.gain.linearRampToValueAtTime(0, now + 0.05);
-            oscillator.stop(now + 0.06);
-        } catch (e) { /* ignore */ }
+            gainNode.gain.linearRampToValueAtTime(0, now + releaseTimeFromUI); 
+            oscillator.stop(now + releaseTimeFromUI + 0.01);
+        } catch (e) { }
     });
     AppState.setActiveOscillators([]);
+
+    Object.keys(AppState.livePlayingAudioNodes).forEach(keyId => {
+        AudioCore.stopLiveFrequencies(keyId, releaseTimeFromUI); 
+    });
+    AppState.activeLiveKeys.clear();
+
 
     if (clearDisplay) {
         DomElements.currentChordDisplay.innerHTML = "🎶 Stopped.";

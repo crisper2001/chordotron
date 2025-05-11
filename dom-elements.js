@@ -4,8 +4,12 @@ export const parametersControlsFieldset = document.getElementById('parametersCon
 export const inputModeRadios = document.querySelectorAll('input[name="inputMode"]');
 export const chordNameInputArea = document.getElementById('chordNameInputArea');
 export const scaleDegreeInputArea = document.getElementById('scaleDegreeInputArea');
+export const livePlayingInputArea = document.getElementById('livePlayingInputArea');
 export const chordInputEl = document.getElementById('chordInput');
 export const scaleDegreeInputEl = document.getElementById('scaleDegreeInput');
+
+export const triggerChordInputs = Array.from(document.querySelectorAll('.trigger-chord-input'));
+
 export const songKeySelect = document.getElementById('songKey');
 export const keyModeSelect = document.getElementById('keyMode');
 export const bpmSlider = document.getElementById('bpm');
@@ -50,7 +54,17 @@ export const masterGainValueSpan = document.getElementById('masterGainValue');
 export const synthGainSlider = document.getElementById('synthGain');
 export const synthGainValueSpan = document.getElementById('synthGainValue');
 
-// Help Modal Elements
 export const helpModalOverlay = document.getElementById('helpModalOverlay');
 export const modalCloseButton = document.getElementById('modalCloseButton');
 export const helpButton = document.getElementById('helpButton');
+
+export const timingParametersGroup = document.getElementById('timingParametersGroup');
+export const pitchRangeParametersGroup = document.getElementById('pitchRangeParametersGroup');
+export const soundOptionsGroup = document.getElementById('soundOptionsGroup');
+export const metronomeVolumeLabel = document.getElementById('metronomeVolumeLabel'); 
+export const playbackFooter = document.getElementById('playbackFooter');
+export const mainPlaybackWrapper = document.getElementById('mainPlaybackWrapper');
+export const prevChordDisplayContainer = document.getElementById('prevChordDisplayContainer');
+export const nextChordDisplayContainer = document.getElementById('nextChordDisplayContainer');
+export const mainPlaybackControls = document.getElementById('mainPlaybackControls');
+export const mainPlaybackInfo = document.getElementById('mainPlaybackInfo');

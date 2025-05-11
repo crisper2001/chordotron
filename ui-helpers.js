@@ -12,7 +12,96 @@ export function setControlsDisabled(disabled) {
     DomElements.mainControlsFieldset.disabled = disabled;
     if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = disabled;
     if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = disabled;
+
+    if (!disabled) {
+        DomElements.timingParametersGroup.classList.remove('disabled-in-live-mode');
+        DomElements.soundOptionsGroup.classList.remove('disabled-in-live-mode'); 
+        if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
+        const masterGainLabel = document.querySelector('label[for="masterGain"]');
+        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
+        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+
+    }
 }
+
+export function updateLivePlayingControlsDisabled(isKeyDown) {
+    DomElements.mainControlsFieldset.disabled = isKeyDown;
+    
+    if(DomElements.parametersControlsFieldset) {
+         DomElements.parametersControlsFieldset.disabled = isKeyDown;
+         // When parametersControlsFieldset is disabled, all its children are also effectively disabled.
+         // We just need to ensure Master Gain is re-enabled if parametersControlsFieldset is enabled AND no key is down.
+         if (DomElements.masterGainSlider) {
+            DomElements.masterGainSlider.disabled = isKeyDown; 
+            const masterGainLabel = document.querySelector('label[for="masterGain"]');
+            if (masterGainLabel) masterGainLabel.classList.toggle('disabled-text', isKeyDown);
+            if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.toggle('disabled-text', isKeyDown);
+         }
+    }
+    
+    if (DomElements.parametersControlsFieldset && isKeyDown) {
+        DomElements.parametersControlsFieldset.classList.add('live-playing-active');
+    } else if (DomElements.parametersControlsFieldset) {
+        DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
+    }
+
+
+    if (isKeyDown) {
+        if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = false;
+    } else {
+         if (DomElements.appActionsFieldset && !AppState.sequencePlaying) {
+            DomElements.appActionsFieldset.disabled = false;
+        }
+    }
+}
+
+
+export function updateUIModeVisuals(mode) {
+    DomElements.chordNameInputArea.style.display = mode === 'chords' ? 'flex' : 'none';
+    DomElements.scaleDegreeInputArea.style.display = mode === 'degrees' ? 'flex' : 'none';
+    DomElements.livePlayingInputArea.style.display = mode === 'livePlaying' ? 'flex' : 'none';
+
+    const isLivePlayingMode = mode === 'livePlaying';
+
+    DomElements.timingParametersGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode);
+    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode); 
+    DomElements.playbackFooter.classList.toggle('disabled-for-live-playing', isLivePlayingMode);
+    
+    if (DomElements.parametersControlsFieldset) {
+        DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
+    }
+
+
+    if (isLivePlayingMode) {
+        if (AppState.sequencePlaying) stopPlayback(true);
+        DomElements.prevChordDisplay.innerHTML = "⏮️ --";
+        DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
+        if(DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
+        if(DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
+        updateLivePlayingControlsDisabled(false); 
+        if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
+        const masterGainLabel = document.querySelector('label[for="masterGain"]');
+        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
+        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+
+
+    } else {
+        updateBeatIndicatorsVisibility(getBeatsPerMeasure());
+        if (!AppState.sequencePlaying) {
+             DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
+             DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
+             DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+        }
+        DomElements.mainControlsFieldset.disabled = false;
+        if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = false;
+         if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
+         const masterGainLabel = document.querySelector('label[for="masterGain"]');
+        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
+        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+        if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = false;
+    }
+}
+
 
 export function setupSliderListeners() {
     const sliders = [
@@ -67,6 +156,9 @@ export function getBeatDurationFactorForTimeSignature(timeSignatureString) {
 export function updateBeatIndicatorsVisibility(beatsPerMeasure) {
     if (!DomElements.beatIndicatorContainer) return;
     DomElements.beatIndicatorContainer.innerHTML = '';
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') return;
+
 
     for (let i = 0; i < beatsPerMeasure; i++) {
         const indicator = document.createElement('div');
@@ -160,6 +252,23 @@ export function formatChordForDisplay(chordNameToFormat) {
 
 
 export function updateChordContextDisplay(currentIndex, chordsArray) {
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') {
+        if (AppState.activeLiveKeys.size === 0) {
+            DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
+        } else {
+             if (chordsArray && chordsArray.length > 0 && chordsArray[0]) {
+                DomElements.currentChordDisplay.innerHTML = `🎹 ${formatChordForDisplay(chordsArray[0].name)}`;
+            } else {
+                DomElements.currentChordDisplay.innerHTML = "🎹 ---";
+            }
+        }
+        DomElements.prevChordDisplay.innerHTML = "⏮️ --";
+        DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
+        return;
+    }
+
+
     const formatNameForUI = (chordObject) => {
         if (!chordObject) return "--";
         let displayName = "";
@@ -248,6 +357,14 @@ export function applySettingsToUI(settings) {
     
     DomElements.rangeStartNoteSlider.value = settings.rangeStartMidi ?? Constants.DEFAULT_MIN_MIDI_RANGE_START;
     DomElements.rangeLengthSlider.value = settings.rangeLength ?? Constants.DEFAULT_RANGE_LENGTH;
+
+    if (settings.livePlayingChords && DomElements.triggerChordInputs.length === settings.livePlayingChords.length) {
+        settings.livePlayingChords.forEach((chord, index) => {
+            if (DomElements.triggerChordInputs[index]) {
+                DomElements.triggerChordInputs[index].value = chord;
+            }
+        });
+    }
     
     const currentLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (currentLength - 1);
@@ -259,8 +376,8 @@ export function applySettingsToUI(settings) {
 
     const modeToSelect = settings.inputMode || "chords";
     document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
-    DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
-    DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
+    updateUIModeVisuals(modeToSelect);
+
 
     setupSliderListeners();
     
@@ -270,7 +387,13 @@ export function applySettingsToUI(settings) {
     updateKnobValueSpan(DomElements.releaseSlider, DomElements.releaseValueSpan);
     updateKnobValueSpan(DomElements.synthGainSlider, DomElements.synthGainValueSpan);
 
-    updateBeatIndicatorsVisibility(getBeatsPerMeasure());
+
+    if (!AppState.sequencePlaying && modeToSelect !== "livePlaying") {
+        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
+        DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
+        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+    }
+
 
     if (DomElements.adsrCanvas) { 
         const adsrSettings = {
@@ -281,11 +404,5 @@ export function applySettingsToUI(settings) {
         };
         const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
         ADSRVisualizer.drawADSRGraph(adsrSettings, currentSynthGain);
-    }
-
-    if (!AppState.sequencePlaying) {
-        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
-        DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
-        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
     }
 }

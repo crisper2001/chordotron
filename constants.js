@@ -79,6 +79,13 @@ export const ROMAN_NUMERAL_MAP = {
 
 export const DISPLAY_SYMBOL_MAP = { 'o': '°', 'o7': '°7', 'oM7': '°M7', 'h7': 'ø' };
 
+export const LIVE_PLAYING_KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '='];
+export const KEY_TO_LIVE_PLAYING_INDEX_MAP = {
+    '1': 0, '2': 1, '3': 2, '4': 3, '5': 4, '6': 5,
+    '7': 6, '8': 7, '9': 8, '0': 9, '-': 10, '=': 11
+};
+
+
 export const defaultSettings = {
     bpm: 120, attack: 0.01, decay: 0.1, sustain: 0.7, release: 0.01,
     timeSignature: "4/4", oscillatorType: "triangle",
@@ -90,4 +97,5 @@ export const defaultSettings = {
     rangeLength: DEFAULT_RANGE_LENGTH,
     masterGain: 0.5,
     synthGain: 0.5,
+    livePlayingChords: Array(LIVE_PLAYING_KEYS.length).fill("")
 };
