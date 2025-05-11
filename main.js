@@ -8,7 +8,6 @@ import * as KeyboardUI from './keyboard-ui.js';
 import * as MusicTheory from './music-theory.js';
 import * as ADSRVisualizer from './adsr-visualizer.js';
 
-// --- Event Listeners ---
 DomElements.inputModeRadios.forEach(radio => {
     radio.addEventListener('change', (event) => {
         DomElements.chordNameInputArea.style.display = event.target.value === 'chords' ? 'block' : 'none';
@@ -42,7 +41,7 @@ document.addEventListener('keydown', (event) => {
 });
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
-    if (confirm("Are you sure you want to restore all settings to their defaults?")) {
+    if (confirm("Are you sure you want to start a new song and reset all settings to their defaults?")) {
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
         updateKeyboardRangeFromSliders();
         updateADSRVisualizerFromSliders();
@@ -91,7 +90,7 @@ if (DomElements.rangeLengthSlider) {
 }
 
 function updateADSRKnobValue(sliderElement, spanElement) {
-    if (spanElement && sliderElement) { // Add guard for sliderElement
+    if (spanElement && sliderElement) {
         spanElement.textContent = parseFloat(sliderElement.value).toFixed(2);
     }
 }
@@ -111,8 +110,8 @@ function updateADSRVisualizerFromSliders() {
         sustain: parseFloat(DomElements.sustainSlider.value),
         release: parseFloat(DomElements.releaseSlider.value)
     };
-    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); // Get synth gain
-    ADSRVisualizer.drawADSRGraph(adsrSettings, currentSynthGain); // Pass synth gain
+    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); 
+    ADSRVisualizer.drawADSRGraph(adsrSettings, currentSynthGain); 
 }
 
 [

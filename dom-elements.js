@@ -1,4 +1,3 @@
-// --- DOM Elements ---
 export const mainControlsFieldset = document.getElementById('mainControlsFieldset');
 export const appActionsFieldset = document.getElementById('appActionsFieldset');
 export const parametersControlsFieldset = document.getElementById('parametersControlsFieldset');
@@ -23,7 +22,7 @@ export const releaseValueSpan = document.getElementById('releaseValue');
 export const oscillatorTypeEl = document.getElementById('oscillatorType');
 export const loopToggle = document.getElementById('loopToggle');
 export const metronomeAudioToggle = document.getElementById('metronomeAudioToggle');
-export const metronomeVolumeSlider = document.getElementById('metronomeVolume'); // This is now "Metronome Vol Adj"
+export const metronomeVolumeSlider = document.getElementById('metronomeVolume');
 export const metronomeVolumeValueSpan = document.getElementById('metronomeVolumeValue');
 export const playStopButton = document.getElementById('playStopButton');
 export const currentChordDisplay = document.getElementById('currentChordDisplay');
@@ -35,23 +34,18 @@ export const saveSettingsButton = document.getElementById('saveSettingsButton');
 export const loadSettingsFile = document.getElementById('loadSettingsFile');
 export const loadSettingsButton = document.getElementById('loadSettingsButton');
 
-// Chord Pitch Range Sliders
 export const rangeStartNoteSlider = document.getElementById('rangeStartNoteSlider');
 export const rangeStartNoteValueSpan = document.getElementById('rangeStartNoteValue');
 export const rangeLengthSlider = document.getElementById('rangeLengthSlider');
 export const rangeLengthValueSpan = document.getElementById('rangeLengthValue');
 export const currentRangeDisplaySpan = document.getElementById('currentRangeDisplay');
 
-// Piano Keyboard Element
 export const pianoKeyboardContainer = document.getElementById('pianoKeyboardContainer');
 
-// ADSR Visualizer Canvas
 export const adsrCanvas = document.getElementById('adsrCanvas');
 
-// Master Gain
 export const masterGainSlider = document.getElementById('masterGain');
 export const masterGainValueSpan = document.getElementById('masterGainValue');
 
-// Synth Gain (within ADSR group) <<< ADDED
 export const synthGainSlider = document.getElementById('synthGain');
 export const synthGainValueSpan = document.getElementById('synthGainValue');

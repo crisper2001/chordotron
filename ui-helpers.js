@@ -6,7 +6,6 @@ import * as MusicTheory from './music-theory.js';
 import * as ADSRVisualizer from './adsr-visualizer.js';
 
 function clearInputErrorStates() {
-    // Not currently used for sliders
 }
 
 export function setControlsDisabled(disabled) {
@@ -20,7 +19,6 @@ export function setupSliderListeners() {
         { el: DomElements.bpmSlider, span: DomElements.bpmValueSpan, isFloat: false },
         { el: DomElements.metronomeVolumeSlider, span: DomElements.metronomeVolumeValueSpan, isFloat: true },
         { el: DomElements.masterGainSlider, span: DomElements.masterGainValueSpan, isFloat: true },
-        // ADSR and Synth Gain knob text spans are updated directly in updateADSRVisualizerFromSliders or applySettingsToUI
     ];
     sliders.forEach(({el, span, isFloat}) => {
         if (!el) return; 
@@ -185,9 +183,8 @@ export function applySettingsToUI(settings) {
     DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
     DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
 
-    setupSliderListeners(); // Sets up general slider text spans
+    setupSliderListeners();
     
-    // Manually update ADSR and Synth Gain knob value spans
     updateKnobValueSpan(DomElements.attackSlider, DomElements.attackValueSpan);
     updateKnobValueSpan(DomElements.decaySlider, DomElements.decayValueSpan);
     updateKnobValueSpan(DomElements.sustainSlider, DomElements.sustainValueSpan);

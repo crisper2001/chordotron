@@ -6,30 +6,30 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-    background-color: #e9eff5; 
-    background-image: linear-gradient(to bottom, #f5f9fd 0%, #d8e2ec 100%); 
+    background-color: #e9eff5;
+    background-image: linear-gradient(to bottom, #f5f9fd 0%, #d8e2ec 100%);
     color: #333;
     line-height: 1.5;
     padding: 0;
     font-size: 15px;
-    display: flex; 
+    display: flex;
     flex-direction: column;
-    align-items: center; 
+    align-items: center;
     min-height: 100vh;
     width: 100vw;
-    overflow-x: hidden; 
+    overflow-x: hidden;
 }
 
 .app-container {
     width: 100%;
-    margin: 0; 
+    margin: 0;
     background: #ffffff;
     border-radius: 0;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1); 
-    overflow: hidden; 
-    display: flex; 
-    flex-direction: column; 
-    min-height: 100vh; 
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 header {
@@ -59,10 +59,11 @@ header h1 {
 
 .main-content {
     display: grid;
-    grid-template-columns: minmax(320px, 0.7fr) 1.3fr; 
+    grid-template-columns: minmax(320px, 0.7fr) 1.3fr;
     gap: 20px;
     padding: 20px;
-    flex-grow: 1; 
+    flex-grow: 1;
+    overflow-y: auto;
 }
 
 .input-section,
@@ -71,24 +72,34 @@ header h1 {
     padding: 20px;
     border-radius: 6px;
     border: 1px solid #e0e0e0;
-    min-width: 280px; 
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+}
+
+#chordNameInputArea,
+#scaleDegreeInputArea {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
 }
 
 .keyboard-section {
     padding: 15px 20px;
-    background-color: #f0f2f5; 
+    background-color: #f0f2f5;
     border-top: 1px solid #dee2e6;
     border-bottom: 1px solid #dee2e6;
 }
 
 .playback-footer {
-    display: flex; 
-    align-items: center; 
+    display: flex;
+    align-items: center;
     justify-content: space-between;
     padding: 10px 20px;
     background-image: linear-gradient(to bottom, #495057, #343a40);
-    color: #f8f9fa; 
-    border-top: 2px solid #007bff; 
+    color: #f8f9fa;
+    border-top: 2px solid #007bff;
     gap: 10px;
     flex-wrap: nowrap;
 }
@@ -100,14 +111,22 @@ fieldset#parametersControlsFieldset {
     padding: 0;
 }
 
+fieldset#mainControlsFieldset,
+fieldset#parametersControlsFieldset {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+
 fieldset[disabled] {
     opacity: 0.6;
     pointer-events: none;
 }
 
 fieldset[disabled] > h2 {
-    color: #888b8e !important; 
-    border-bottom-color: rgba(0, 123, 255, 0.1) !important; 
+    color: #888b8e !important;
+    border-bottom-color: rgba(0, 123, 255, 0.1) !important;
 }
 
 fieldset[disabled] .control-group h3 {
@@ -126,7 +145,7 @@ fieldset[disabled] .control-group h3 {
     font-weight: 600;
 }
 
-.control-group h3 { 
+.control-group h3 {
     margin-top: 0; margin-bottom: 10px; font-size: 1.1em; color: #0056b3; border-bottom: 1px solid #007bff30; padding-bottom: 6px; font-weight: 600;
 }
 
@@ -139,7 +158,7 @@ label {
     color: #495057;
 }
 
-label > span { 
+label > span {
     font-weight: 500;
     margin-left: 6px;
     color: #007bff;
@@ -151,10 +170,10 @@ label > span {
 
 fieldset[disabled] label > span {
     color: #888b8e !important;
-    background-color: #e0e0e0 !important; 
+    background-color: #e0e0e0 !important;
 }
 
-input[type="text"], 
+input[type="text"],
 select,
 textarea {
     width: 100%;
@@ -167,30 +186,31 @@ textarea {
     background-color: #fff;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
-select:hover, 
-textarea:hover, 
-input[type="text"]:hover { 
-    border-color: #86b7fe; 
+select:hover,
+textarea:hover,
+input[type="text"]:hover {
+    border-color: #86b7fe;
 }
 
-input[type="range"] { 
+input[type="range"] {
     width: 100%;
-    padding: 0; 
+    padding: 0;
     margin-top: 2px;
-    margin-bottom: 8px; 
-    accent-color: #007bff; 
+    margin-bottom: 8px;
+    accent-color: #007bff;
     background-color: #fff;
 }
 
-input[type="radio"] { 
-    margin-right: 6px; 
-    transform: scale(1.05); 
-    accent-color: #007bff; 
+input[type="radio"] {
+    margin-right: 6px;
+    transform: scale(1.05);
+    accent-color: #007bff;
 }
 
-textarea { 
-    resize: vertical; 
-    min-height: 80px; 
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    flex-grow: 1;
 }
 
 button:focus-visible,
@@ -199,12 +219,12 @@ textarea:focus-visible,
 input[type="range"]:focus-visible,
 input[type="checkbox"]:focus-visible,
 input[type="radio"]:focus-visible,
-input[type="text"]:focus-visible { 
+input[type="text"]:focus-visible {
     outline: 2px solid #007bff;
     outline-offset: 1px;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
 }
-input[type="checkbox"].toggle-button + label:focus-visible { 
+input[type="checkbox"].toggle-button + label:focus-visible {
      outline: 2px solid #007bff;
     outline-offset: 1px;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
@@ -241,29 +261,29 @@ input[type="text"].input-error {
     outline-color: #6c757d;
     box-shadow: 0 0 0 2px rgba(108, 117, 125, 0.25);
 }
-.file-actions button { 
+.file-actions button {
     background-image: linear-gradient(to bottom, #20c997, #138496);
-    border-color: #117a8b; 
+    border-color: #117a8b;
 }
-.file-actions button:hover { 
+.file-actions button:hover {
     background-image: linear-gradient(to bottom, #1bafa0, #10707f);
-    border-color: #10707f; 
+    border-color: #10707f;
 }
-.file-actions button:active { 
+.file-actions button:active {
     background-image: linear-gradient(to bottom, #138496, #10707f);
-    border-color: #0e616f; 
+    border-color: #0e616f;
 }
-.app-management-actions button { 
+.app-management-actions button {
     background-image: linear-gradient(to bottom, #868e96, #6c757d);
-    border-color: #545b62; 
+    border-color: #545b62;
 }
-.app-management-actions button:hover { 
+.app-management-actions button:hover {
     background-image: linear-gradient(to bottom, #6c757d, #5a6268);
-    border-color: #4e555b; 
+    border-color: #4e555b;
 }
-.app-management-actions button:active { 
+.app-management-actions button:active {
     background-image: linear-gradient(to bottom, #5a6268, #495057);
-    border-color: #434a50; 
+    border-color: #434a50;
 }
 
 #playStopButton {
@@ -276,19 +296,19 @@ input[type="text"].input-error {
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     margin: 0 5px;
 }
-#playStopButton:hover { 
-    transform: translateY(-1px); 
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15); 
+#playStopButton:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
     background-image: linear-gradient(to bottom, #2cb980, #218c3a);
 }
-#playStopButton:active { 
-    transform: translateY(0px); 
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); 
+#playStopButton:active {
+    transform: translateY(0px);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
 }
-#playStopButton.playing { 
+#playStopButton.playing {
     background-image: linear-gradient(to bottom, #ff6b6b, #dc3545);
 }
-#playStopButton.playing:hover { 
+#playStopButton.playing:hover {
     background-image: linear-gradient(to bottom, #ee5252, #c82333);
 }
 
@@ -315,12 +335,19 @@ input[type="text"].input-error {
 .option-group { display: flex; align-items: center; }
 .option-group label { margin-top: 0; font-weight: 500; font-size: 0.95em; color: #333; }
 
-.parameters-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
-.control-group { 
-    padding: 15px; 
-    border-radius: 5px; 
-    border: 1px solid #d1d9e0; 
+.parameters-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+    flex-grow: 1;
+}
+.control-group {
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #d1d9e0;
     background-image: linear-gradient(to bottom, #ffffff, #fbfcfd);
+    display: flex;
+    flex-direction: column;
 }
 
 .voicing-pitch-range-group div {
@@ -353,7 +380,6 @@ input[type="text"].input-error {
     color: #0056b3;
 }
 
-/* --- Synth Section --- */
 .synth-controls-group {
     display: flex;
     flex-direction: column;
@@ -363,82 +389,85 @@ input[type="text"].input-error {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px; /* Spacing below oscillator */
+    margin-bottom: 10px;
 }
 .oscillator-control-inline label {
-    margin-bottom: 0; /* Remove default bottom margin */
-    flex-shrink: 0; /* Prevent label from shrinking */
+    margin-bottom: 0;
+    flex-shrink: 0;
 }
 .oscillator-control-inline select {
-    flex-grow: 1; /* Allow select to take remaining space */
-    margin-top: 0; /* Remove default top margin */
+    flex-grow: 1;
+    margin-top: 0;
 }
 
 .adsr-section {
-    margin-top: 5px; /* Reduced space */
-    padding-top: 8px; /* Reduced padding */
+    margin-top: 5px;
+    padding-top: 8px;
     border-top: 1px dashed #eee;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 .section-sub-label {
     font-size: 0.85em;
     font-weight: 600;
     color: #6c757d;
-    margin-bottom: 5px; /* Reduced margin */
+    margin-bottom: 5px;
     display: block;
 }
 .adsr-canvas-container {
     width: 100%;
-    max-width: 220px; /* Slightly smaller canvas for compactness */
-    margin: 0 auto 10px auto; 
+    max-width: 220px;
+    margin: 0 auto 10px auto;
     display: flex;
     justify-content: center;
 }
 #adsrCanvas {
     border: 1px solid #ccc;
     background-color: #f9f9f9;
-    width: 100%; 
-    height: auto; 
-    aspect-ratio: 200 / 100; /* Adjusted aspect ratio if canvas size changed */
+    width: 100%;
+    height: auto;
+    aspect-ratio: 200 / 100;
 }
 .adsr-knobs-container {
     display: flex;
-    justify-content: space-around; 
-    align-items: flex-start; 
+    justify-content: space-around;
+    align-items: flex-start;
     width: 100%;
-    gap: 3px; /* Further reduced gap for 5 knobs */
-    padding: 5px 0; /* Reduced padding */
-    flex-wrap: wrap; 
+    gap: 3px;
+    padding: 5px 0;
+    flex-wrap: wrap;
 }
 .knob-control {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    min-width: 38px; /* Adjusted for 5 knobs */
-    flex-grow: 1; 
-    flex-basis: 18%; /* Aim for 5 across */
+    min-width: 38px;
+    flex-grow: 1;
+    flex-basis: 18%;
 }
 .knob-label-top {
-    font-size: 0.75em; /* Smaller label */
+    font-size: 0.75em;
     color: #555;
-    margin-bottom: 3px; /* Reduced margin */
+    margin-bottom: 3px;
     font-weight: 500;
-    white-space: nowrap; /* Prevent wrapping */
+    white-space: nowrap;
 }
 input[type="range"].adsr-knob {
     -webkit-appearance: slider-vertical;
     appearance: slider-vertical;
-    writing-mode: bt-lr; 
-    width: 18px; /* Thinner track */
-    height: 75px; /* Shorter knobs */
+    writing-mode: bt-lr;
+    width: 18px;
+    height: 75px;
     padding: 0;
-    margin: 3px 0; 
+    margin: 3px 0;
     cursor: ns-resize;
 }
 .knob-value {
-    font-size: 0.75em; /* Smaller value */
+    font-size: 0.75em;
     color: #007bff;
-    margin-top: 3px; /* Reduced margin */
+    margin-top: 3px;
     background-color: #e9ecef;
     padding: 1px 3px;
     border-radius: 3px;
@@ -448,19 +477,19 @@ input[type="range"].adsr-knob {
 
 
 .piano-keyboard-container {
-    position: relative; 
-    display: flex; 
-    width: 100%; 
-    max-width: 1000px; 
-    margin: 0 auto; 
-    height: 120px; 
-    background-color: #333; 
+    position: relative;
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    height: 120px;
+    background-color: #333;
     border-radius: 4px;
-    overflow: hidden; 
+    overflow: hidden;
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
 }
 .piano-key {
-    position: absolute; 
+    position: absolute;
     height: 100%;
     border: 1px solid #555;
     border-top: none;
@@ -473,8 +502,8 @@ input[type="range"].adsr-knob {
 }
 .piano-key.black-key {
     background-color: #3a3a3a;
-    height: 60%; 
-    z-index: 2; 
+    height: 60%;
+    z-index: 2;
     border-left: 2px solid #222;
     border-right: 2px solid #222;
     border-bottom: 3px solid #222;
@@ -482,18 +511,18 @@ input[type="range"].adsr-knob {
     box-shadow: inset 0 -2px 3px rgba(255,255,255,0.1), 0 1px 0px rgba(0,0,0,0.4);
 }
 .piano-key.white-key.in-range {
-    background-color: #fff9c4; 
+    background-color: #fff9c4;
 }
 .piano-key.black-key.in-range {
-    background-color: #a1887f; 
+    background-color: #a1887f;
 }
-.piano-key.white-key.active, 
-.piano-key.white-key.active.in-range { 
-    background-color: #79c7ff; 
+.piano-key.white-key.active,
+.piano-key.white-key.active.in-range {
+    background-color: #79c7ff;
 }
 .piano-key.black-key.active,
-.piano-key.black-key.active.in-range { 
-    background-color: #0056b3; 
+.piano-key.black-key.active.in-range {
+    background-color: #0056b3;
     box-shadow: inset 0 -1px 2px rgba(255,255,255,0.2), 0 0px 0px rgba(0,0,0,0.4);
 }
 
@@ -542,53 +571,53 @@ input[type="range"].adsr-knob {
 }
 
 .main-playback-info {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    text-align: center; 
-    gap: 4px; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 4px;
     margin-top: 8px;
 }
 #currentChordDisplay {
-    font-size: 1.1em; 
-    font-weight: 600; 
-    color: #ffffff; 
-    min-height: 20px; 
-    padding: 1px 8px; 
-    background-color: rgba(255,255,255,0.1); 
-    border-radius: 4px; 
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #ffffff;
+    min-height: 20px;
+    padding: 1px 8px;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 4px;
     line-height: 1.2;
 }
 .chord-context-display {
     flex: 0 1 100px;
-    text-align: center; 
-    overflow: hidden; 
-    white-space: nowrap; 
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
     text-overflow: ellipsis;
 }
 .chord-context-display.prev-chord { text-align: right; }
 .chord-context-display.next-chord { text-align: left; }
 .context-chord {
-    font-size: 0.8em; 
-    color: #ced4da; 
-    padding: 3px 6px; 
-    background-color: rgba(255, 255, 255, 0.05); 
+    font-size: 0.8em;
+    color: #ced4da;
+    padding: 3px 6px;
+    background-color: rgba(255, 255, 255, 0.05);
     border: 1px solid #495057;
-    border-radius: 4px; 
-    min-height: 20px; 
+    border-radius: 4px;
+    min-height: 20px;
     line-height: 1.2;
 }
 
 #beatIndicatorContainer {
     display: flex;
-    gap: 5px; 
+    gap: 5px;
     align-items: center;
     justify-content: center;
-    width: auto; 
-    margin-top: 4px; 
+    width: auto;
+    margin-top: 4px;
 }
 .beat-indicator {
-    width: 14px; 
+    width: 14px;
     height: 14px;
     background-color: #6c757d; border-radius: 50%;
     transition: background-color 0.05s ease-in-out, transform 0.1s ease, box-shadow 0.1s ease;
@@ -605,8 +634,8 @@ input[type="range"].adsr-knob {
     header { padding: 10px 15px; }
     header h1 { font-size: 1.4em; }
     .app-actions-bar { padding: 8px 15px; }
-    .main-content { 
-        padding: 15px; 
+    .main-content {
+        padding: 15px;
         gap: 15px;
         grid-template-columns: 1fr;
     }
@@ -614,8 +643,8 @@ input[type="range"].adsr-knob {
     #mainControlsFieldset > h2,
     #parametersControlsFieldset > h2 { font-size: 1.15em; margin-bottom: 12px; padding-bottom: 6px;}
     .control-group h3 { font-size: 1.05em; margin-bottom: 10px; }
-    .playback-footer { 
-        padding: 10px; 
+    .playback-footer {
+        padding: 10px;
         justify-content: center;
     }
     .main-playback-wrapper {
@@ -628,7 +657,7 @@ input[type="range"].adsr-knob {
         gap: 8px;
     }
     .knob-control {
-        flex-basis: calc(33.33% - 10px); /* Try for 3 knobs per row */
+        flex-basis: calc(33.33% - 10px);
         margin-bottom: 10px;
     }
     .keyboard-section { padding: 10px 15px; }
@@ -637,9 +666,9 @@ input[type="range"].adsr-knob {
 
 @media (max-width: 600px) {
     .parameters-columns { grid-template-columns: 1fr; }
-    .voicing-range-inputs { grid-template-columns: 1fr; } 
+    .voicing-range-inputs { grid-template-columns: 1fr; }
     .key-selection-grid { grid-template-columns: 1fr; }
-    .app-actions-bar { flex-direction: column; align-items: stretch; } 
+    .app-actions-bar { flex-direction: column; align-items: stretch; }
     .action-group { margin-bottom: 6px; justify-content: center; }
     .main-playback-controls { gap: 8px; }
     #playStopButton { padding: 10px 20px; font-size: 1.05em; }
@@ -650,8 +679,8 @@ input[type="range"].adsr-knob {
     label > span { display: inline-block; margin-top: 3px; margin-left: 0; }
     .piano-keyboard-container { height: 80px; }
     .adsr-canvas-container { max-width: 200px; margin-bottom:10px;}
-    .knob-control { 
-        flex-basis: calc(50% - 8px); /* Two knobs per row */
+    .knob-control {
+        flex-basis: calc(50% - 8px);
     }
 }
 
@@ -666,11 +695,11 @@ input[type="range"].adsr-knob {
     .beat-indicator { width: 13px; height: 13px; gap: 4px;}
     .piano-keyboard-container { height: 70px; }
     .knob-control {
-        min-width: 35px; 
+        min-width: 35px;
         flex-basis: calc(50% - 5px);
     }
     input[type="range"].adsr-knob {
-        height: 65px; /* Even shorter */
+        height: 65px;
     }
     .adsr-canvas-container { max-width: 150px;}
 }

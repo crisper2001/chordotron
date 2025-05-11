@@ -5,7 +5,7 @@ let ctx = null;
 
 const PADDING = 20; 
 const AXIS_COLOR = '#888'; 
-const LINE_COLOR = '#007bff'; // Changed to blue
+const LINE_COLOR = '#007bff'; 
 const GUIDE_COLOR = '#ddd'; 
 const TEXT_COLOR = '#555'; 
 
@@ -16,34 +16,30 @@ function clearCanvas() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
-function drawAxes() { // No longer needs currentSynthGain for axis label
+function drawAxes() { 
     if (!ctx || !canvas) return;
     ctx.strokeStyle = AXIS_COLOR;
     ctx.lineWidth = 1;
     ctx.font = '10px Arial';
     ctx.fillStyle = TEXT_COLOR;
 
-    // Y-axis
     ctx.beginPath();
     ctx.moveTo(PADDING, PADDING);
     ctx.lineTo(PADDING, canvas.height - PADDING);
     ctx.stroke();
-    // Y-axis peak label always shows "1.0" representing normalized ADSR envelope peak
     ctx.fillText('1.0', PADDING - 18, PADDING + 5); 
     ctx.fillText('0.0', PADDING - 18, canvas.height - PADDING);
 
-    // X-axis
     ctx.beginPath();
     ctx.moveTo(PADDING, canvas.height - PADDING);
     ctx.lineTo(canvas.width - PADDING, canvas.height - PADDING);
     ctx.stroke();
 }
 
-// currentSynthGain is still needed to scale the actual height of the drawn envelope
 export function drawADSRGraph(adsrSettings, currentSynthGain) { 
     if (!ctx || !canvas) return;
     clearCanvas();
-    drawAxes(); // Axes labels are now static
+    drawAxes(); 
 
     const { attack, decay, sustain, release } = adsrSettings;
 
@@ -52,29 +48,24 @@ export function drawADSRGraph(adsrSettings, currentSynthGain) {
 
     const totalPlotTime = attack + decay + VISUAL_NOTE_HELD_DURATION_PLOT + release;
     
-    // This is the gain value from the "Gain" knob in ADSR section.
-    // It scales the ADSR envelope's height from 0 up to its own value (max 1.0).
     const envelopeHeightMultiplier = parseFloat(currentSynthGain); 
 
     if (totalPlotTime <= 0) return; 
 
     const timeScale = graphWidth / totalPlotTime;
-    // gainScale maps the conceptual 0-1 range of the canvas Y-axis to pixels.
     const gainScale = graphHeight / 1.0; 
 
     const toCanvasX = (time) => PADDING + time * timeScale;
-    // adsrGainValue is the normalized (0-1) value from the ADSR process (e.g., peak of attack is 1.0).
-    // This is then multiplied by envelopeHeightMultiplier to get the actual height on the graph.
     const toCanvasY = (adsrGainValue) => PADDING + graphHeight - (adsrGainValue * envelopeHeightMultiplier * gainScale);
 
-    ctx.strokeStyle = LINE_COLOR; // Blue line
+    ctx.strokeStyle = LINE_COLOR; 
     ctx.lineWidth = 2;
     ctx.beginPath();
 
     ctx.moveTo(toCanvasX(0), toCanvasY(0)); 
 
     const attackEndTime = attack;
-    ctx.lineTo(toCanvasX(attackEndTime), toCanvasY(1.0)); // ADSR Attack reaches its own normalized peak of 1.0
+    ctx.lineTo(toCanvasX(attackEndTime), toCanvasY(1.0)); 
 
     const decayEndTime = attackEndTime + decay;
     const sustainLevelRelative = sustain; 

@@ -1,4 +1,3 @@
-// --- Music Theory Data ---
 export const ALL_NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 export const NOTE_NAMES_MAP = {
     'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'Fb': 4,
@@ -8,21 +7,19 @@ export const NOTE_NAMES_MAP = {
 export const A4 = 440;
 export const SEMITONES_IN_OCTAVE = 12;
 
-// MIDI Note constants
 export const MIDI_C2 = 36;
 export const MIDI_C3 = 48;
 export const MIDI_C4 = 60;
 export const MIDI_C5 = 72;
 export const MIDI_B5 = 83;
 
-export const MIDI_A0 = 21; 
-export const MIDI_C8 = 108; 
+export const MIDI_A0 = 21;
+export const MIDI_C8 = 108;
 
-export const DEFAULT_MIN_MIDI_RANGE_START = MIDI_C3; // Default start for the Range Start slider
-export const DEFAULT_RANGE_LENGTH = 24; // Default length for the Range Length slider
+export const DEFAULT_MIN_MIDI_RANGE_START = MIDI_C3;
+export const DEFAULT_RANGE_LENGTH = 24;
 
-// Max start note for the Range Start slider if the range length is 12 and the range must end by B5
-export const MAX_POSSIBLE_MIDI_START_FOR_RANGE_B5 = MIDI_B5 - (12 - 1); 
+export const MAX_POSSIBLE_MIDI_START_FOR_RANGE_B5 = MIDI_B5 - (12 - 1);
 
 export const CHORD_FORMULAS = {
     '': [0, 4, 7], 'maj': [0, 4, 7], 'M': [0, 4, 7], 'm': [0, 3, 7], 'min': [0, 3, 7],
@@ -85,11 +82,11 @@ export const DISPLAY_SYMBOL_MAP = { 'o': '°', 'o7': '°7', 'oM7': '°M7', 'h7':
 export const defaultSettings = {
     bpm: 120, attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.3,
     timeSignature: "4/4", oscillatorType: "triangle",
-    metronomeVolume: 0.8, 
+    metronomeVolume: 0.8,
     loopToggle: false, metronomeAudioToggle: false,
-    inputMode: "chords", chordInput: "C G Am F Em(2) G(2) C",
-    scaleDegreeInput: "I IV V I vi ii V I", songKey: "C", keyMode: "ionian",
-    rangeStartMidi: DEFAULT_MIN_MIDI_RANGE_START, 
+    inputMode: "chords", chordInput: "",
+    scaleDegreeInput: "", songKey: "C", keyMode: "ionian",
+    rangeStartMidi: DEFAULT_MIN_MIDI_RANGE_START,
     rangeLength: DEFAULT_RANGE_LENGTH,
     masterGain: 0.5,
     synthGain: 0.5,

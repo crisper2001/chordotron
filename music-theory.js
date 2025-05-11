@@ -17,7 +17,7 @@ export function parseChordNameToFrequencies(chordName, referenceOctave) {
     const match = normalizedChordName.match(/^([A-Ga-g][#b]?)(.*)$/);
     if (!match) return { frequencies: [], rootNoteName: null };
 
-    const rootNoteNameOnly = match[1].charAt(0).toUpperCase() + match[1].slice(1).replace(/[0-9]/g, ''); // e.g. C, F#
+    const rootNoteNameOnly = match[1].charAt(0).toUpperCase() + match[1].slice(1).replace(/[0-9]/g, ''); 
     let quality = match[2];
 
     if (!(rootNoteNameOnly in Constants.NOTE_NAMES_MAP)) return { frequencies: [], rootNoteName: rootNoteNameOnly };
@@ -87,7 +87,7 @@ export function parseDirectChordString(chordString, defaultBeatsPerChord) {
 export function noteNameToMidi(noteNameWithOctave) {
     const match = noteNameWithOctave.toUpperCase().match(/^([A-G][#B]?)([0-9])$/);
     if (!match) {
-        // console.warn(`Invalid note format for MIDI conversion: ${noteNameWithOctave}`);
+        
         return null;
     }
 
@@ -107,7 +107,7 @@ export function noteNameToMidi(noteNameWithOctave) {
     }
 
     if (!(notePart in Constants.NOTE_NAMES_MAP)) {
-        // console.warn(`Invalid note name for MIDI conversion: ${match[1]}`);
+        
         return null;
     }
     const midiNote = Constants.NOTE_NAMES_MAP[notePart] + octavePart * Constants.SEMITONES_IN_OCTAVE + 12;
@@ -138,15 +138,15 @@ export function voiceFrequenciesInMidiRange(initialFrequencies, chordRootNoteNam
     let minMidi = userMinMidi;
     let maxMidi = userMaxMidi;
 
-    // Default to a wide sensible range if user range is invalid
+    
     if (userMinMidi === null || userMaxMidi === null || userMinMidi >= userMaxMidi) {
-        minMidi = 24; // C1
-        maxMidi = 96; // C7
-        // console.warn(`Invalid user MIDI range or no range provided. Defaulting to C1-C7 for chord ${chordRootNoteName}.`);
+        minMidi = 24; 
+        maxMidi = 96; 
+        
     }
     if (!chordRootNoteName || !(chordRootNoteName in Constants.NOTE_NAMES_MAP)) {
-        // If no valid root, fall back to simpler voicing (lowest pitch class in range for each note)
-        // console.warn(`No valid root note for ${chordRootNoteName}. Using simpler voicing.`);
+        
+        
         const originalMidiNotesSimple = initialFrequencies.map(freq => frequencyToMidi(freq)).sort((a, b) => a - b);
         const voicedMidiNotesSimple = [];
         for (const originalMidi of originalMidiNotesSimple) {
@@ -155,9 +155,9 @@ export function voiceFrequenciesInMidiRange(initialFrequencies, chordRootNoteNam
             let currentVoicedNote = minMidi - (minMidi % 12) + pitchClass;
             if (currentVoicedNote < minMidi) currentVoicedNote += 12;
             
-            while (currentVoicedNote > maxMidi && currentVoicedNote - 12 >= 0) currentVoicedNote -=12; // Try to bring down if too high
-            if (currentVoicedNote < minMidi && currentVoicedNote + 12 <= maxMidi) currentVoicedNote += 12; // Try to bring up if too low after adjustment
-            if (currentVoicedNote < minMidi) { // If still too low, force to minMidi's pitch class or above
+            while (currentVoicedNote > maxMidi && currentVoicedNote - 12 >= 0) currentVoicedNote -=12; 
+            if (currentVoicedNote < minMidi && currentVoicedNote + 12 <= maxMidi) currentVoicedNote += 12; 
+            if (currentVoicedNote < minMidi) { 
                  let forced = minMidi - (minMidi % 12) + pitchClass;
                  if (forced < minMidi) forced += 12;
                  currentVoicedNote = forced;
@@ -176,19 +176,14 @@ export function voiceFrequenciesInMidiRange(initialFrequencies, chordRootNoteNam
     const rootPitchClass = Constants.NOTE_NAMES_MAP[chordRootNoteName];
     const initialRootMidiGuess = initialMidiNotes.find(note => (note % 12) === rootPitchClass) || initialMidiNotes[0];
 
-    // 1. Anchor the Root Note
     let anchoredRootMidi = minMidi - (minMidi % 12) + rootPitchClass;
     if (anchoredRootMidi < minMidi) {
         anchoredRootMidi += Constants.SEMITONES_IN_OCTAVE;
     }
-    // If anchored root is still above maxMidi, try to lower it by octaves.
+    
     while (anchoredRootMidi > maxMidi && (anchoredRootMidi - Constants.SEMITONES_IN_OCTAVE >= minMidi)) {
         anchoredRootMidi -= Constants.SEMITONES_IN_OCTAVE;
     }
-    // If it's impossible to fit the root (e.g. C5 root in C2-C3 range after adjustments),
-    // this means the range is very restrictive. For now, we'll let it be, subsequent notes might also struggle.
-    // A more robust solution might shift the entire target range or use a different strategy.
-
 
     const voicedMidiNotes = [];
     const tempVoicedNotes = [];
@@ -199,7 +194,6 @@ export function voiceFrequenciesInMidiRange(initialFrequencies, chordRootNoteNam
         const intervalFromInitialRoot = currentInitialMidi - initialRootMidiGuess;
         let targetVoicedMidi = anchoredRootMidi + intervalFromInitialRoot;
 
-        // Adjust octave to fit within [minMidi, maxMidi]
         while (targetVoicedMidi > maxMidi && (targetVoicedMidi - Constants.SEMITONES_IN_OCTAVE >= minMidi)) {
             targetVoicedMidi -= Constants.SEMITONES_IN_OCTAVE;
         }
@@ -207,18 +201,17 @@ export function voiceFrequenciesInMidiRange(initialFrequencies, chordRootNoteNam
             targetVoicedMidi += Constants.SEMITONES_IN_OCTAVE;
         }
 
-        // Final check: if still outside, try to force it to the closest edge
         if (targetVoicedMidi < minMidi) {
             let forced = minMidi - (minMidi % 12) + (targetVoicedMidi % 12);
             if (forced < minMidi) forced += 12;
-            targetVoicedMidi = forced; // This might push it above maxMidi if range is small
+            targetVoicedMidi = forced; 
         }
         if (targetVoicedMidi > maxMidi) {
              let forced = maxMidi - (maxMidi % 12) + (targetVoicedMidi % 12);
              if (forced > maxMidi) forced -= 12;
-             targetVoicedMidi = forced; // This might push it below minMidi
+             targetVoicedMidi = forced; 
         }
-        // One last check for very narrow ranges
+        
         if (targetVoicedMidi < minMidi) targetVoicedMidi = minMidi;
         if (targetVoicedMidi > maxMidi) targetVoicedMidi = maxMidi;
 
@@ -226,13 +219,8 @@ export function voiceFrequenciesInMidiRange(initialFrequencies, chordRootNoteNam
         tempVoicedNotes.push(targetVoicedMidi);
     }
 
-    // Remove duplicates and sort
     const uniqueSortedVoicedMidi = [...new Set(tempVoicedNotes)].sort((a, b) => a - b);
     
-    // Ensure minimum number of notes if possible (e.g. at least root, or root+third if range allows)
-    // This part can get complex. For now, let's rely on the Set to handle dense voicings.
-    // If after voicing, we have fewer notes than expected (e.g. due to very narrow range collapsing intervals),
-    // it might be acceptable or indicate a need for even more advanced logic (e.g. dropping non-essential tones).
 
     return uniqueSortedVoicedMidi.map(midi => midiToFrequency(midi));
 }
