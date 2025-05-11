@@ -1,0 +1,167 @@
+.app-container {
+    width: 100%;
+    background: #E9EFF5;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+header {
+    background-color: #3A7CA5;
+    color: white;
+    padding: 10px 20px;
+    text-align: center;
+    border-bottom: 1px solid #2A5C8A;
+    flex-shrink: 0;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2em;
+    font-weight: 700;
+    color: #FFFFFF;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0px #2A5C8A, 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.app-actions-bar {
+    padding: 6px 15px;
+    background-color: #D8DCE2;
+    border-bottom: 1px solid #BCC1C8;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.main-content {
+    display: grid;
+    grid-template-columns: minmax(300px, 0.7fr) 1.3fr;
+    gap: 15px;
+    padding: 15px;
+    flex-grow: 1;
+    overflow-y: auto;
+    background-color: #F4F6F8;
+}
+
+.input-section,
+.parameters-section {
+    background-color: #FFFFFF;
+    padding: 15px;
+    border-radius: 3px;
+    border: 1px solid #C5C9D0;
+    min-width: 270px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+#chordNameInputArea,
+#scaleDegreeInputArea {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 0;
+}
+
+.keyboard-section {
+    padding: 12px 15px;
+    background-color: #DEE2E6;
+    border-top: 1px solid #BCC1C8;
+    border-bottom: 1px solid #BCC1C8;
+    flex-shrink: 0;
+}
+
+.playback-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 15px;
+    background-color: #495057;
+    color: #F0F2F5;
+    border-top: 1px solid #3A3F44;
+    gap: 20px;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+}
+
+fieldset#mainControlsFieldset,
+fieldset#appActionsFieldset,
+fieldset#parametersControlsFieldset {
+    border: none;
+    padding: 0;
+}
+
+fieldset#mainControlsFieldset,
+fieldset#parametersControlsFieldset {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+fieldset[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+fieldset[disabled] > h2 {
+    color: #777c81 !important;
+    border-bottom-color: rgba(58, 124, 165, 0.1) !important;
+}
+
+fieldset[disabled] .control-group h3 {
+    color: #777c81 !important;
+    border-bottom-color: rgba(58, 124, 165, 0.1) !important;
+}
+
+#mainControlsFieldset > h2,
+#parametersControlsFieldset > h2 {
+    font-size: 1.2em;
+    color: #2A5C8A;
+    margin-top: 0;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #A8B8C8;
+    padding-bottom: 6px;
+    font-weight: 600;
+}
+
+.control-group h3 {
+    margin-top: 0; margin-bottom: 8px; font-size: 1.1em; color: #3A7CA5; border-bottom: 1px solid #C5D5E5; padding-bottom: 5px; font-weight: 600;
+}
+
+.input-mode-selector {
+    margin-bottom: 12px;
+    padding: 7px 9px;
+    background-color: #E4E9EF;
+    border-radius: 3px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    border: 1px solid #D0D5DB;
+}
+.input-mode-selector label { font-weight: 500; margin: 0; display: flex; align-items: center; font-size: 0.95em; color: #333; }
+
+.key-selection-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.key-selection-grid div label { margin-top: 0; }
+
+.option-group { display: flex; align-items: center; }
+.option-group label { margin-top: 0; font-weight: 500; font-size: 0.95em; color: #333; }
+
+.parameters-columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px;
+    flex-grow: 1;
+}
+.control-group {
+    padding: 12px;
+    border-radius: 3px;
+    border: 1px solid #D1D9E0;
+    background-color: #FDFEFF;
+    display: flex;
+    flex-direction: column;
+}

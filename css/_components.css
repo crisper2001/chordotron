@@ -1,0 +1,335 @@
+.app-actions-bar button {
+    padding: 5px 10px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #2c3e50;
+    background-color: #F0F2F5;
+    border: 1px solid #AEB6BF;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+.app-actions-bar button:hover {
+    background-color: #E4E9EF;
+    border-color: #9BA3AD;
+    box-shadow: none;
+    transform: none;
+}
+.app-actions-bar button:active {
+    background-color: #D8DCE2;
+    border-color: #8C939C;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+    transform: none;
+}
+.app-actions-bar button:focus-visible {
+     outline: 1px solid #3A7CA5;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
+}
+
+#playStopButton {
+    background-image: linear-gradient(to bottom, #5CB85C, #4CAF50);
+    color: white; padding: 7px 16px;
+    border: 1px solid #449D44;
+    border-radius: 3px; cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600; min-width: 70px;
+    transition: background-image 0.15s ease, transform 0.05s ease, box-shadow 0.1s ease;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    margin: 0 4px;
+}
+#playStopButton:hover {
+    transform: translateY(0px);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    background-image: linear-gradient(to bottom, #4CAF50, #449D44);
+}
+#playStopButton:active {
+    transform: translateY(0px);
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.15);
+    background-image: linear-gradient(to bottom, #449D44, #4CAF50);
+}
+#playStopButton.playing {
+    background-image: linear-gradient(to bottom, #D9534F, #D43F3A);
+    border-color: #C9302C;
+}
+#playStopButton.playing:hover {
+    background-image: linear-gradient(to bottom, #D43F3A, #C9302C);
+}
+
+.action-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.voicing-pitch-range-group div {
+    margin-bottom: 6px;
+}
+.voicing-pitch-range-group label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.voicing-pitch-range-group label > span {
+    margin-left: 0;
+    min-width: 28px;
+    text-align: right;
+}
+.range-display {
+    font-size: 0.9em;
+    color: #495057;
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed #DEE2E6;
+}
+.range-display span {
+    font-weight: 600;
+    color: #2A5C8A;
+}
+
+.synth-controls-group {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+.oscillator-control-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+.oscillator-control-inline label {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+.oscillator-control-inline select {
+    flex-grow: 1;
+    margin-top: 0;
+}
+
+.adsr-section {
+    margin-top: 4px;
+    padding-top: 6px;
+    border-top: 1px dashed #DEE2E6;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+.section-sub-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #5a6268;
+    margin-bottom: 4px;
+    display: block;
+}
+.adsr-canvas-container {
+    width: 100%;
+    max-width: 200px;
+    margin: 0 auto 8px auto;
+    display: flex;
+    justify-content: center;
+}
+#adsrCanvas {
+    border: 1px solid #BCC1C8;
+    background-color: #F8F9FA;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 200 / 100;
+}
+.adsr-knobs-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-start;
+    width: 100%;
+    gap: 2px;
+    padding: 4px 0;
+    flex-wrap: wrap;
+}
+.knob-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 36px;
+    flex-grow: 1;
+    flex-basis: 18%;
+}
+.knob-label-top {
+    font-size: 0.7em;
+    color: #495057;
+    margin-bottom: 2px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+input[type="range"].adsr-knob {
+    -webkit-appearance: slider-vertical;
+    appearance: slider-vertical;
+    writing-mode: bt-lr;
+    width: 16px;
+    height: 70px;
+    padding: 0;
+    margin: 2px 0;
+    cursor: ns-resize;
+}
+.knob-value {
+    font-size: 0.75em;
+    color: #005A9E;
+    margin-top: 2px;
+    background-color: #E4E9EF;
+    padding: 1px 3px;
+    border-radius: 2px;
+    border: 1px solid #D0D5DB;
+    min-width: 20px;
+    display: inline-block;
+}
+
+.piano-keyboard-container {
+    position: relative;
+    display: flex;
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    height: 110px;
+    background-color: #343a40;
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.15);
+}
+.piano-key {
+    position: absolute;
+    height: 100%;
+    border: 1px solid #495057;
+    border-top: none;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.05);
+    transition: background-color 0.05s ease-in-out;
+}
+.piano-key.white-key {
+    background-color: #f8f9fa;
+    z-index: 1;
+}
+.piano-key.black-key {
+    background-color: #303438;
+    height: 60%;
+    z-index: 2;
+    border-left: 1px solid #222;
+    border-right: 1px solid #222;
+    border-bottom: 2px solid #222;
+    border-radius: 0 0 2px 2px;
+    box-shadow: inset 0 -1px 2px rgba(255,255,255,0.05), 0 1px 0px rgba(0,0,0,0.3);
+}
+.piano-key.white-key.in-range {
+    background-color: #E0EBF5;
+}
+.piano-key.black-key.in-range {
+    background-color: #6C7A89;
+}
+.piano-key.white-key.active,
+.piano-key.white-key.active.in-range {
+    background-color: #5C9EDD;
+}
+.piano-key.black-key.active,
+.piano-key.black-key.active.in-range {
+    background-color: #3A7CA5;
+    box-shadow: inset 0 -1px 1px rgba(255,255,255,0.1), 0 0px 0px rgba(0,0,0,0.3);
+}
+
+.main-playback-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-grow: 0;
+    min-width: 240px;
+}
+.main-playback-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.playback-option-toggle.button-style-toggle input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.playback-option-toggle.button-style-toggle label.toggle-button {
+    display: inline-block;
+    padding: 5px 10px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #CED4DA;
+    background-color: #6c757d;
+    border: 1px solid #5a6268;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
+    user-select: none;
+    margin: 0;
+}
+.playback-option-toggle.button-style-toggle input[type="checkbox"]:checked + label.toggle-button {
+    background-color: #3A7CA5;
+    border-color: #2A5C8A;
+    color: white;
+}
+.playback-option-toggle.button-style-toggle label.toggle-button:hover {
+    background-color: #5a6268;
+}
+.playback-option-toggle.button-style-toggle input[type="checkbox"]:checked + label.toggle-button:hover {
+    background-color: #2A5C8A;
+}
+
+.main-playback-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 3px;
+    margin-top: 6px;
+}
+#currentChordDisplay {
+    font-size: 1em;
+    font-weight: 600;
+    color: #ffffff;
+    min-height: 18px;
+    padding: 2px 6px;
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    line-height: 1.2;
+}
+.chord-context-display {
+    flex: 0 1 90px;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.chord-context-display.prev-chord { text-align: right; }
+.chord-context-display.next-chord { text-align: left; }
+.context-chord {
+    font-size: 0.75em;
+    color: #B0B3B8;
+    padding: 2px 5px;
+    background-color: rgba(0, 0, 0, 0.1);
+    border: 1px solid #5a6268;
+    border-radius: 2px;
+    min-height: 18px;
+    line-height: 1.2;
+}
+
+#beatIndicatorContainer {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    margin-top: 3px;
+}
+.beat-indicator {
+    width: 12px;
+    height: 12px;
+    background-color: #6A7177;
+    border-radius: 50%;
+    transition: background-color 0.05s ease-in-out, transform 0.05s ease, box-shadow 0.05s ease;
+    border: 1px solid #555B61;
+}
+.beat-indicator.active { background-color: #3A7CA5; transform: scale(1.05); box-shadow: 0 0 4px rgba(58, 124, 165, 0.3); }
+.beat-indicator.downbeat { background-color: #E67E22; box-shadow: 0 0 4px rgba(230, 126, 34, 0.4); }

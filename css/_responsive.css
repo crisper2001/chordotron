@@ -1,0 +1,85 @@
+@media (max-width: 1024px) {
+    .piano-keyboard-container { height: 90px; }
+     .main-content {
+        grid-template-columns: minmax(280px, 0.6fr) 1.4fr;
+    }
+}
+
+@media (max-width: 768px) {
+    body { font-size: 13px; }
+    header { padding: 8px 15px; }
+    header h1 { font-size: 1.3em; }
+    .app-actions-bar { padding: 6px 12px; }
+    .main-content {
+        padding: 10px;
+        gap: 10px;
+        grid-template-columns: 1fr;
+    }
+    .input-section, .parameters-section, .control-group { padding: 10px; }
+    #mainControlsFieldset > h2,
+    #parametersControlsFieldset > h2 { font-size: 1.1em; margin-bottom: 10px; padding-bottom: 5px;}
+    .control-group h3 { font-size: 1em; margin-bottom: 8px; }
+    .playback-footer {
+        padding: 8px;
+    }
+    .main-playback-wrapper {
+        width: 100%;
+    }
+    .chord-context-display { display: none; }
+    .adsr-knobs-container {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+    }
+    .knob-control {
+        flex-basis: calc(33.33% - 8px);
+        margin-bottom: 8px;
+    }
+    .keyboard-section { padding: 8px 12px; }
+    .piano-keyboard-container { height: 80px; }
+}
+
+@media (max-width: 600px) {
+    .parameters-columns { grid-template-columns: 1fr; }
+    .key-selection-grid { grid-template-columns: 1fr; }
+    .app-actions-bar { flex-direction: column; align-items: stretch; }
+    .action-group { margin-bottom: 5px; justify-content: center; }
+    .main-playback-controls { gap: 6px; }
+    #playStopButton { padding: 8px 18px; font-size: 1em; }
+    .playback-option-toggle.button-style-toggle label.toggle-button { padding: 7px 12px; font-size: 0.9em;}
+    #currentChordDisplay { font-size: 1em; }
+    .beat-indicator { width: 13px; height: 13px; }
+    textarea { min-height: 60px; }
+    label > span { display: inline-block; margin-top: 2px; margin-left: 0; }
+    .piano-keyboard-container { height: 70px; }
+    .adsr-canvas-container { max-width: 180px; margin-bottom:8px;}
+    .knob-control {
+        flex-basis: calc(50% - 6px);
+    }
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+    .modal-content h2 { font-size: 1.5em; }
+    .modal-section h3 { font-size: 1.15em; }
+}
+
+@media (max-width: 420px) {
+    header h1 { font-size: 1.2em; }
+    .main-content { padding: 8px; }
+    .input-mode-selector { flex-direction: column; align-items: flex-start; gap: 6px; }
+    #playStopButton { font-size: 0.95em; padding: 7px 14px; min-width: 65px;}
+    .playback-option-toggle.button-style-toggle label.toggle-button { padding: 6px 9px; font-size: 0.8em;}
+    .main-playback-controls { gap: 2px; }
+    #currentChordDisplay { font-size: 0.9em; }
+    .beat-indicator { width: 11px; height: 11px; gap: 3px;}
+    .piano-keyboard-container { height: 60px; }
+    .knob-control {
+        min-width: 32px;
+        flex-basis: calc(50% - 4px);
+    }
+    input[type="range"].adsr-knob {
+        height: 60px;
+    }
+    .adsr-canvas-container { max-width: 140px;}
+}

@@ -1,0 +1,107 @@
+html {
+    height: 100%;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #D0D3D8;
+    color: #2c3e50;
+    line-height: 1.45;
+    font-size: 14px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+label {
+    display: block;
+    margin-top: 8px;
+    margin-bottom: 3px;
+    font-weight: 600;
+    font-size: 0.9em;
+    color: #343a40;
+}
+
+label > span {
+    font-weight: 500;
+    margin-left: 5px;
+    color: #005A9E;
+    font-size: 0.9em;
+    background-color: #E4E9EF;
+    padding: 2px 5px;
+    border-radius: 2px;
+    border: 1px solid #D0D5DB;
+}
+
+input[type="text"],
+select,
+textarea {
+    width: 100%;
+    padding: 7px 9px;
+    margin-top: 2px;
+    border: 1px solid #AEB6BF;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 0.95em;
+    background-color: #fff;
+    transition: border-color 0.1s ease-in-out, box-shadow 0.1s ease-in-out;
+    color: #333;
+}
+select:hover,
+textarea:hover,
+input[type="text"]:hover {
+    border-color: #5C9EDD;
+}
+
+input[type="range"] {
+    width: 100%;
+    padding: 0;
+    margin-top: 2px;
+    margin-bottom: 6px;
+    accent-color: #3A7CA5;
+    background-color: transparent;
+}
+
+input[type="radio"] {
+    margin-right: 5px;
+    transform: scale(1);
+    accent-color: #3A7CA5;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 70px;
+    flex-grow: 1;
+}
+
+button:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+input[type="range"]:focus-visible,
+input[type="checkbox"]:focus-visible,
+input[type="radio"]:focus-visible,
+input[type="text"]:focus-visible {
+    outline: 1px solid #3A7CA5;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
+}
+input[type="checkbox"].toggle-button + label:focus-visible {
+    outline: 1px solid #3A7CA5;
+    outline-offset: 1px;
+    box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
+}
+
+input[type="text"].input-error {
+    border-color: #D9534F !important;
+    box-shadow: 0 0 0 2px rgba(217, 83, 79, 0.2) !important;
+}
+
+fieldset[disabled] label > span {
+    color: #777c81 !important;
+    background-color: #D8DCE2 !important;
+    border-color: #C0C5CB !important;
+}
