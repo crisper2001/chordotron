@@ -95,12 +95,12 @@ header h1 {
 .playback-footer {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center; /* MODIFIED: Center the content */
     padding: 10px 20px;
     background-image: linear-gradient(to bottom, #495057, #343a40);
     color: #f8f9fa;
     border-top: 2px solid #007bff;
-    gap: 10px;
+    gap: 25px; /* MODIFIED: Increased gap for better spacing now that items are centered */
     flex-wrap: nowrap;
 }
 
@@ -530,7 +530,7 @@ input[type="range"].adsr-knob {
     display: flex;
     flex-direction: column;
     align-items: center;
-    flex-grow: 1;
+    flex-grow: 0; /* MODIFIED: Prevent this wrapper from expanding excessively */
     min-width: 250px;
 }
 .main-playback-controls {
