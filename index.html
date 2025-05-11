@@ -39,7 +39,7 @@
 
                     <div id="chordNameInputArea">
                         <label for="chordInput">Chord Progression:</label>
-                        <textarea id="chordInput" rows="15" style="resize: none;" placeholder="E(8) C#m(8) A(8) B(8)"></textarea>
+                        <textarea id="chordInput" rows="15" style="resize: none;"></textarea>
                     </div>
 
                     <div id="scaleDegreeInputArea" style="display:none;">
@@ -77,7 +77,7 @@
                             </div>
                         </div>
                         <label for="scaleDegreeInput">Scale Degrees:</label>
-                        <textarea id="scaleDegreeInput" rows="15" style="resize: none;" placeholder="I(2) V(2) vi(2) iii(2) IV(2) I(2) IV(2) V(2)"></textarea>
+                        <textarea id="scaleDegreeInput" rows="15" style="resize: none;"></textarea>
                     </div>
                 </fieldset>
             </section>
@@ -217,11 +217,11 @@
     <div id="helpModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
         <div class="modal-content">
             <button id="modalCloseButton" class="modal-close-button" title="Close Help" aria-label="Close help dialog">×</button>
-            <h2 id="helpModalTitle">Chordotron - Quick Start Guide</h2>
+            <h2 id="helpModalTitle">Chordotron - Quick Start</h2>
             
             <div class="modal-section">
                 <h3>What is Chordotron?</h3>
-                <p>Chordotron is a web-based tool to quickly prototype, play, and experiment with chord progressions. You can input chords directly or use scale degrees, adjust timing, synth sounds, and playback parameters.</p>
+                <p><i>Chordotron</i> is a web-based tool to quickly prototype, play, and experiment with chord progressions. You can input chords directly or use scale degrees, adjust timing, synth sounds, and playback parameters.</p>
             </div>
 
             <div class="modal-section">
@@ -230,7 +230,7 @@
                 <ul>
                     <li><strong>🎵 Chord Names:</strong> Enter standard chord notation.
                         <ul>
-                            <li>Example: <code>Cmaj7(4) G/B(4) Am7(4) F(4)</code></li>
+                            <li>Example: <code>E(8) C#m(8) A(8) B(8)</code></li>
                             <li><code>(4)</code> denotes the duration in beats (optional, defaults to beats per measure).</li>
                             <li>Slash chords like <code>G/B</code> (G major with B in the bass) are supported.</li>
                             <li>Supported qualities include: <code>m, maj, M, dim, aug, sus4, sus2, 7, maj7, m7, dim7, o, ø, +</code>, and more complex extensions (9, 11, 13).</li>
@@ -238,7 +238,7 @@
                     </li>
                     <li><strong>🎼 Scale Degrees:</strong> Enter Roman numerals relative to a chosen key and mode.
                         <ul>
-                            <li>Example: <code>I(2) V(2) vi(2) IV(2)</code> in C Major.</li>
+                            <li>Example: <code>I(2) V(2) vi(2) iii(2) IV(2) I(2) IV(2) V(2)</code> in D Major.</li>
                             <li>Set the <strong>Song Key</strong> (e.g., C, G#, Eb) and <strong>Mode</strong> (e.g., Ionian/Major, Aeolian/Minor, Dorian).</li>
                             <li>Accidentals: <code>bII</code>, <code>#IV</code>.</li>
                             <li>Slash chords (applied chords or bass notes): <code>V/iii</code>.</li>
