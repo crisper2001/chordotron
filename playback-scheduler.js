@@ -7,6 +7,7 @@ import * as KeyboardUI from './keyboard-ui.js';
 import * as Constants from './constants.js';
 
 const REFERENCE_OCTAVE_FOR_PARSING = 2;
+// const DEBUG_SCHEDULER_DURATION = false; // No longer needed
 
 function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
@@ -14,7 +15,7 @@ function createMetronomeTick(time, isDownbeat) {
     const frequency = isDownbeat ? 1200 : 1000;
     const metronomeVolumeAdjustment = parseFloat(DomElements.metronomeVolumeSlider.value);
     const masterGain = parseFloat(DomElements.masterGainSlider.value);
-    const finalMetronomeGain = metronomeVolumeAdjustment * masterGain; // Metronome volume is now also affected by master gain
+    const finalMetronomeGain = metronomeVolumeAdjustment * masterGain; 
     
     const beatsPerMeasure = UIHelpers.getBeatsPerMeasure();
     const visualBeatIndex = AppState.currentBeatInSequenceForVisualMetronome % beatsPerMeasure;
@@ -40,7 +41,6 @@ function createMetronomeTick(time, isDownbeat) {
     AppState.setCurrentBeatInSequenceForVisualMetronome(AppState.currentBeatInSequenceForVisualMetronome + 1);
 }
 
-// combinedSynthAndMasterGain is pre-calculated (synthGain * masterGain)
 function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature, combinedSynthAndMasterGain) {
     const quarterNoteDuration = 60 / bpm;
     const timeSigBeatFactor = UIHelpers.getBeatDurationFactorForTimeSignature(timeSignature);
@@ -99,8 +99,8 @@ function scheduleNextEvent(isSelectionPlayback) {
     const currentOscillatorType = DomElements.oscillatorTypeEl.value;
     const currentTimeSignature = DomElements.timeSignatureSelect.value;
     const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
-    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); // Get synth gain
-    const combinedGainForChord = currentSynthGain * currentMasterGain; // Pre-calculate combined gain
+    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); 
+    const combinedGainForChord = currentSynthGain * currentMasterGain; 
 
     const currentADSR = {
         attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
@@ -114,6 +114,7 @@ function scheduleNextEvent(isSelectionPlayback) {
     const actualSingleBeatDuration = quarterNoteDuration * timeSigBeatFactor;
     
     const beatsPerMeasureForMetronome = UIHelpers.getBeatsPerMeasure();
+
     for (let i = 0; i < chordToPlay.beats; i++) {
         const tickTime = chordStartTime + (i * actualSingleBeatDuration);
         const isDownbeat = (AppState.currentBeatInSequenceForVisualMetronome % beatsPerMeasureForMetronome === 0);
@@ -125,13 +126,13 @@ function scheduleNextEvent(isSelectionPlayback) {
         currentOscillatorType,
         AppState.currentChordIndex, AppState.originalChords,
         currentTimeSignature,
-        combinedGainForChord // Pass the pre-calculated combined gain
+        combinedGainForChord 
     );
 
     AppState.setNextEventTime(AppState.nextEventTime + durationOfThisChordSlot);
 
     const timeUntilNextEventMs = (AppState.nextEventTime - AppState.audioCtx.currentTime) * 1000;
-    AppState.setCurrentSchedulerTimeoutId(setTimeout(() => scheduleNextEvent(isSelectionPlayback), Math.max(0, timeUntilNextEventMs - 50)));
+    AppState.setCurrentSchedulerTimeoutId(setTimeout(() => scheduleNextEvent(isSelectionPlayback), Math.max(0, timeUntilNextEventMs - 50))); 
 }
 
 export function startPlayback() {
@@ -206,7 +207,7 @@ export function startPlayback() {
         return { 
             ...chordObj, 
             frequencies: voicingResult.frequencies,
-            wasSlashPlayed: voicingResult.playedAsSlash // Store this for UI
+            wasSlashPlayed: voicingResult.playedAsSlash 
         };
     });
     AppState.setOriginalChords(finalChords);
