@@ -12,10 +12,9 @@ function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
     const adsrTick = { attack: 0.005, decay: 0.03, sustain: 0.1, release: 0.06 };
     const frequency = isDownbeat ? 1200 : 1000;
-    const metronomeVolume = parseFloat(DomElements.metronomeVolumeSlider.value);
-    // Metronome also affected by master gain for consistency, or you could decide it's independent.
-    // For now, let's make it independent of masterGain and use its own slider directly.
-    // const masterGain = parseFloat(DomElements.masterGainSlider.value);
+    const metronomeVolumeAdjustment = parseFloat(DomElements.metronomeVolumeSlider.value);
+    const masterGain = parseFloat(DomElements.masterGainSlider.value);
+    const finalMetronomeGain = metronomeVolumeAdjustment * masterGain; // Metronome volume is now also affected by master gain
     
     const beatsPerMeasure = UIHelpers.getBeatsPerMeasure();
     const visualBeatIndex = AppState.currentBeatInSequenceForVisualMetronome % beatsPerMeasure;
@@ -35,14 +34,14 @@ function createMetronomeTick(time, isDownbeat) {
     }, Math.max(0, visualChangeTime));
 
 
-    if (DomElements.metronomeAudioToggle.checked && metronomeVolume > 0) {
-        const finalMetronomeGain = metronomeVolume; // * masterGain;
-        AudioCore.playFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain, 'metronome'); // Pass metronomeVolume directly
+    if (DomElements.metronomeAudioToggle.checked && finalMetronomeGain > 0) {
+        AudioCore.playFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain, 'metronome');
     }
     AppState.setCurrentBeatInSequenceForVisualMetronome(AppState.currentBeatInSequenceForVisualMetronome + 1);
 }
 
-function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature, masterGain) { // Added masterGain
+// combinedSynthAndMasterGain is pre-calculated (synthGain * masterGain)
+function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature, combinedSynthAndMasterGain) {
     const quarterNoteDuration = 60 / bpm;
     const timeSigBeatFactor = UIHelpers.getBeatDurationFactorForTimeSignature(timeSignature);
     const actualSingleBeatDuration = quarterNoteDuration * timeSigBeatFactor;
@@ -51,7 +50,7 @@ function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorTy
     const frequencies = chordObject.frequencies;
 
     if (frequencies && frequencies.length > 0) {
-        AudioCore.playFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, masterGain); // Pass masterGain
+        AudioCore.playFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, combinedSynthAndMasterGain);
     }
     
     const displayDelay = (scheduleTime - AppState.audioCtx.currentTime) * 1000;
@@ -99,7 +98,10 @@ function scheduleNextEvent(isSelectionPlayback) {
     const currentBPM = parseFloat(DomElements.bpmSlider.value);
     const currentOscillatorType = DomElements.oscillatorTypeEl.value;
     const currentTimeSignature = DomElements.timeSignatureSelect.value;
-    const currentMasterGain = parseFloat(DomElements.masterGainSlider.value); // <<< Get master gain
+    const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
+    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); // Get synth gain
+    const combinedGainForChord = currentSynthGain * currentMasterGain; // Pre-calculate combined gain
+
     const currentADSR = {
         attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
         decay: Math.max(0.01, parseFloat(DomElements.decaySlider.value)),
@@ -123,7 +125,7 @@ function scheduleNextEvent(isSelectionPlayback) {
         currentOscillatorType,
         AppState.currentChordIndex, AppState.originalChords,
         currentTimeSignature,
-        currentMasterGain // <<< Pass master gain
+        combinedGainForChord // Pass the pre-calculated combined gain
     );
 
     AppState.setNextEventTime(AppState.nextEventTime + durationOfThisChordSlot);
@@ -189,10 +191,23 @@ export function startPlayback() {
     
     const finalChords = parsedChords.map(chordObj => {
         const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(chordObj.name, REFERENCE_OCTAVE_FOR_PARSING);
+        
         const currentMinMidi = rangeIsValid ? minMidiTarget : null;
         const currentMaxMidi = rangeIsValid ? maxMidiTarget : null;
-        let voicedFrequencies = MusicTheory.voiceFrequenciesInMidiRange(initialFrequencies, rootNoteName, currentMinMidi, currentMaxMidi);
-        return { ...chordObj, frequencies: voicedFrequencies };
+        
+        const voicingResult = MusicTheory.voiceFrequenciesInRange(
+            initialFrequencies, 
+            rootNoteName, 
+            currentMinMidi, 
+            currentMaxMidi, 
+            chordObj.bassNoteName 
+        );
+
+        return { 
+            ...chordObj, 
+            frequencies: voicingResult.frequencies,
+            wasSlashPlayed: voicingResult.playedAsSlash // Store this for UI
+        };
     });
     AppState.setOriginalChords(finalChords);
 
