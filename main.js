@@ -145,6 +145,39 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
     }
 });
 
+// --- Help Modal Logic ---
+function openHelpModal() {
+    if (DomElements.helpModalOverlay) {
+        DomElements.helpModalOverlay.style.display = 'flex';
+    }
+}
+
+function closeHelpModal() {
+    if (DomElements.helpModalOverlay) {
+        DomElements.helpModalOverlay.style.display = 'none';
+    }
+}
+
+// --- Initialize Help Modal ---
+function initHelpGuide() {
+    if (DomElements.helpButton) {
+        DomElements.helpButton.addEventListener('click', openHelpModal);
+    }
+    if (DomElements.modalCloseButton) {
+        DomElements.modalCloseButton.addEventListener('click', closeHelpModal);
+    }
+    if (DomElements.helpModalOverlay) {
+        // Optional: Close when clicking outside the modal content
+        DomElements.helpModalOverlay.addEventListener('click', (event) => {
+            if (event.target === DomElements.helpModalOverlay) {
+                closeHelpModal();
+            }
+        });
+    }
+    // Show modal on initial load as per requirement
+    openHelpModal();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (initialLength - 1);
@@ -160,6 +193,8 @@ document.addEventListener('DOMContentLoaded', () => {
     ADSRVisualizer.initADSRVisualizer(); 
     updateADSRVisualizerFromSliders(); 
 
+    initHelpGuide(); // Initialize and show the help guide
+
     function initAudioContext() {
         if (AppState.audioCtx.state === 'suspended') {
             AppState.audioCtx.resume().catch(e => console.error("Error resuming AudioContext:", e));
@@ -168,4 +203,3 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', initAudioContext, { once: true });
     document.body.addEventListener('touchend', initAudioContext, { once: true });
 });
-

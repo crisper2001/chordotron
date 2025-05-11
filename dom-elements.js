@@ -49,3 +49,8 @@ export const masterGainValueSpan = document.getElementById('masterGainValue');
 
 export const synthGainSlider = document.getElementById('synthGain');
 export const synthGainValueSpan = document.getElementById('synthGainValue');
+
+// Help Modal Elements
+export const helpModalOverlay = document.getElementById('helpModalOverlay');
+export const modalCloseButton = document.getElementById('modalCloseButton');
+export const helpButton = document.getElementById('helpButton');

@@ -23,6 +23,7 @@
                     <button id="loadSettingsButton" title="Load song settings from a file">📁 Load</button>
                     <input type="file" id="loadSettingsFile" accept=".json" style="display: none;">
                     <button id="saveSettingsButton" title="Save current song settings">💾 Save</button>
+                    <button id="helpButton" title="Show help guide">❓ Help</button>
                 </div>
             </div>
         </fieldset>
@@ -211,6 +212,106 @@
                 <div class="context-chord" id="nextChordDisplay">Next: ⏭️ --</div>
             </div>
         </footer>
+    </div>
+
+    <div id="helpModalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle">
+        <div class="modal-content">
+            <button id="modalCloseButton" class="modal-close-button" title="Close Help" aria-label="Close help dialog">×</button>
+            <h2 id="helpModalTitle">Chordotron - Quick Start Guide</h2>
+            
+            <div class="modal-section">
+                <h3>What is Chordotron?</h3>
+                <p>Chordotron is a web-based tool to quickly prototype, play, and experiment with chord progressions. You can input chords directly or use scale degrees, adjust timing, synth sounds, and playback parameters.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3>1. Inputting Your Progression</h3>
+                <p>Choose your input method:</p>
+                <ul>
+                    <li><strong>🎵 Chord Names:</strong> Enter standard chord notation.
+                        <ul>
+                            <li>Example: <code>Cmaj7(4) G/B(4) Am7(4) F(4)</code></li>
+                            <li><code>(4)</code> denotes the duration in beats (optional, defaults to beats per measure).</li>
+                            <li>Slash chords like <code>G/B</code> (G major with B in the bass) are supported.</li>
+                            <li>Supported qualities include: <code>m, maj, M, dim, aug, sus4, sus2, 7, maj7, m7, dim7, o, ø, +</code>, and more complex extensions (9, 11, 13).</li>
+                        </ul>
+                    </li>
+                    <li><strong>🎼 Scale Degrees:</strong> Enter Roman numerals relative to a chosen key and mode.
+                        <ul>
+                            <li>Example: <code>I(2) V(2) vi(2) IV(2)</code> in C Major.</li>
+                            <li>Set the <strong>Song Key</strong> (e.g., C, G#, Eb) and <strong>Mode</strong> (e.g., Ionian/Major, Aeolian/Minor, Dorian).</li>
+                            <li>Accidentals: <code>bII</code>, <code>#IV</code>.</li>
+                            <li>Slash chords (applied chords or bass notes): <code>V/iii</code>.</li>
+                            <li>Explicit qualities: <code>Im7</code>, <code>V7</code>. If no quality is given, a diatonic quality is assumed.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3>2. Setting Parameters (⚙️)</h3>
+                <ul>
+                    <li><strong>⏱️ Timing:</strong>
+                        <ul>
+                            <li><strong>BPM:</strong> Beats Per Minute.</li>
+                            <li><strong>Time Signature:</strong> e.g., 4/4, 3/4, 6/8. This affects default chord duration and metronome.</li>
+                        </ul>
+                    </li>
+                    <li><strong>🎹 Synth:</strong>
+                        <ul>
+                            <li><strong>Oscillator:</strong> Waveform (Sine, Square, Sawtooth, Triangle).</li>
+                            <li><strong>Envelope (ADSR):</strong> Attack, Decay, Sustain, Release times for the sound's shape. Use vertical sliders.</li>
+                            <li><strong>Gain:</strong> Volume of the synth sound itself.</li>
+                        </ul>
+                    </li>
+                    <li><strong>🔊 Master & Metronome:</strong>
+                        <ul>
+                            <li><strong>Master Gain:</strong> Overall output volume.</li>
+                            <li><strong>Metronome Vol Adj:</strong> Adjusts metronome volume relative to master gain.</li>
+                        </ul>
+                    </li>
+                    <li><strong>↔️ Pitch Range:</strong>
+                        <ul>
+                            <li><strong>Range Start & Length:</strong> Defines the allowed MIDI note range for voiced chords. The keyboard below will highlight this range. Chords are voiced to fit within these boundaries.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="modal-section">
+                <h3>3. Playback Controls (Footer)</h3>
+                <ul>
+                    <li><strong>▶️ Play / ⏹️ Stop:</strong> Starts or stops playback. (Keyboard Shortcut: Spacebar)</li>
+                    <li><strong>🔁 Loop:</strong> Toggles looping of the entire progression.</li>
+                    <li><strong>🥁 Metro:</strong> Toggles the audible metronome click.</li>
+                    <li><strong>Chord Display:</strong> Shows previous, current, and next chords.</li>
+                    <li><strong>Beat Indicators:</strong> Visual cue for beats in the current measure.</li>
+                </ul>
+            </div>
+             <div class="modal-section">
+                <h3>4. Keyboard (Middle Section)</h3>
+                 <p>The piano keyboard visualizes the notes being played for the current chord and highlights the selected <strong>Pitch Range</strong>.</p>
+            </div>
+
+            <div class="modal-section">
+                <h3>5. File Operations (Top Bar)</h3>
+                <ul>
+                    <li><strong>📄 New:</strong> Resets all settings and inputs to default.</li>
+                    <li><strong>📁 Load:</strong> Load a previously saved song/settings (<code>.json</code> file).</li>
+                    <li><strong>💾 Save:</strong> Save your current inputs and all parameter settings as a <code>.json</code> file.</li>
+                    <li><strong>❓ Help:</strong> Shows this guide again.</li>
+                </ul>
+            </div>
+             <div class="modal-section">
+                <h3>Tips</h3>
+                <ul>
+                    <li>Use the <strong>Spacebar</strong> to quickly Play/Stop.</li>
+                    <li>You can play a <strong>selection</strong> of your input by highlighting text in the Chord/Degree input area before pressing Play.</li>
+                    <li>Experiment with ADSR and Oscillator types to create different timbres!</li>
+                    <li>The pitch range affects how chords are voiced. Wider ranges give more options.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <script type="module" src="main.js" defer></script>
