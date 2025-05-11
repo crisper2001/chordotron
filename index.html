@@ -4,26 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crisper's Perfect Chord Player</title>
+    <title>🎹 Crisper's Chord Player 🎶</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     <div class="app-container">
         <header>
-            <h1>Crisper's Perfect Chord Player</h1>
+            <h1>🎹 Crisper's Chord Player 🎶</h1>
         </header>
 
         <fieldset id="appActionsFieldset">
             <div class="app-actions-bar">
                 <div class="action-group file-actions">
-                    <button id="saveSettingsButton" title="Save current settings to a file">Save Settings...</button>
+                    <button id="saveSettingsButton" title="Save current settings to a file">💾 Save Settings...</button>
                     <input type="file" id="loadSettingsFile" accept=".json" style="display: none;">
-                    <button id="loadSettingsButton" title="Load settings from a file">Load Settings...</button>
+                    <button id="loadSettingsButton" title="Load settings from a file">📂 Load Settings...</button>
                 </div>
                 <div class="action-group app-management-actions">
-                    <button id="restoreDefaultsButton" title="Reset all settings to their original values">Restore
-                        Defaults</button>
+                    <button id="restoreDefaultsButton" title="Reset all settings to their original values">🔄 Restore Defaults</button>
                 </div>
             </div>
         </fieldset>
@@ -31,10 +30,10 @@
         <main class="main-content">
             <section class="input-section">
                 <fieldset id="mainControlsFieldset">
-                    <h2>Input & Options</h2>
+                    <h2>✏️ Input</h2>
                     <div class="input-mode-selector">
-                        <label><input type="radio" name="inputMode" value="chords" checked> Chord Names</label>
-                        <label><input type="radio" name="inputMode" value="degrees"> Scale Degrees</label>
+                        <label><input type="radio" name="inputMode" value="chords" checked> 🎵 Chord Names</label>
+                        <label><input type="radio" name="inputMode" value="degrees"> 🎼 Scale Degrees</label>
                     </div>
 
                     <div id="chordNameInputArea">
@@ -79,26 +78,15 @@
                         <label for="scaleDegreeInput">Scale Degrees (e.g., I IV V(2) I):</label>
                         <textarea id="scaleDegreeInput" rows="6">I IV V I vi ii V I</textarea>
                     </div>
-
-                    <div class="options-grid">
-                        <div class="option-group">
-                            <input type="checkbox" id="loopToggle" name="loopToggle">
-                            <label for="loopToggle">Loop</label>
-                        </div>
-                        <div class="option-group">
-                            <input type="checkbox" id="metronomeAudioToggle" name="metronomeAudioToggle">
-                            <label for="metronomeAudioToggle">Metronome</label>
-                        </div>
-                    </div>
                 </fieldset>
             </section>
 
             <section class="parameters-section">
                 <fieldset id="parametersControlsFieldset">
-                    <h2>Parameters</h2>
+                    <h2>⚙️ Parameters</h2>
                     <div class="parameters-columns">
                         <div class="control-group timing-group">
-                            <h3>Timing</h3>
+                            <h3>⏱️ Timing</h3>
                             <label for="bpm">BPM: <span id="bpmValue">120</span></label>
                             <input type="range" id="bpm" value="120" min="30" max="300" step="1">
 
@@ -115,7 +103,7 @@
                         </div>
 
                         <div class="control-group adsr-group">
-                            <h3>ADSR (Chords)</h3>
+                            <h3>📈 ADSR</h3>
                             <div class="adsr-canvas-container">
                                 <canvas id="adsrCanvas" width="220" height="120"></canvas>
                             </div>
@@ -130,7 +118,7 @@
                         </div>
 
                         <div class="control-group sound-options-group">
-                            <h3>Sound</h3>
+                            <h3>🔊 Sound</h3>
                             <label for="oscillatorType">Oscillator (Chords):</label>
                             <select id="oscillatorType">
                                 <option value="sine">Sine</option>
@@ -144,7 +132,7 @@
                         </div>
 
                         <div class="control-group voicing-pitch-range-group">
-                            <h3>Chord Pitch Range</h3>
+                            <h3>↔️ Pitch Range</h3>
                             <div>
                                 <label for="rangeStartNoteSlider">Range Start: <span id="rangeStartNoteValue">C3</span></label>
                                 <input type="range" id="rangeStartNoteSlider" value="48" min="36" max="72" step="1">
@@ -168,17 +156,32 @@
         </section>
 
         <footer class="playback-footer">
-            <div class="chord-context-display">
-                <div class="context-chord" id="prevChordDisplay">Prev: --</div>
+            <div class="chord-context-display prev-chord">
+                <div class="context-chord" id="prevChordDisplay">⏮️ Prev: --</div>
             </div>
-            <div class="main-playback-info">
-                <button id="playStopButton">Play</button>
-                <div id="currentChordDisplay">Currently Playing: --</div>
-                <div id="beatIndicatorContainer">
+
+            <div class="main-playback-wrapper">
+                <div class="main-playback-controls">
+                    <div class="playback-option-toggle button-style-toggle">
+                        <input type="checkbox" id="loopToggle" name="loopToggle">
+                        <label for="loopToggle" class="toggle-button">🔁 Loop</label>
+                    </div>
+                    <button id="playStopButton">▶️ Play</button>
+                    <div class="playback-option-toggle button-style-toggle">
+                        <input type="checkbox" id="metronomeAudioToggle" name="metronomeAudioToggle">
+                        <label for="metronomeAudioToggle" class="toggle-button">🥁 Metro</label>
+                    </div>
+                </div>
+
+                <div class="main-playback-info">
+                    <div id="currentChordDisplay">🎶 Playing: --</div>
+                    <div id="beatIndicatorContainer">
+                    </div>
                 </div>
             </div>
-            <div class="chord-context-display">
-                <div class="context-chord" id="nextChordDisplay">Next: --</div>
+
+            <div class="chord-context-display next-chord">
+                <div class="context-chord" id="nextChordDisplay">Next: ⏭️ --</div>
             </div>
         </footer>
     </div>

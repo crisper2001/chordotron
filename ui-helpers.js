@@ -3,7 +3,7 @@ import * as Constants from './constants.js';
 import * as AppState from './state.js';
 import { stopPlayback } from './playback-scheduler.js';
 import * as MusicTheory from './music-theory.js';
-import * as ADSRVisualizer from './adsr-visualizer.js'; // <<< ADDED
+import * as ADSRVisualizer from './adsr-visualizer.js';
 
 function clearInputErrorStates() {
     // Not currently used for sliders
@@ -27,8 +27,6 @@ export function setupSliderListeners() {
     sliders.forEach(({el, span, isFloat}) => {
         if (!el) return; 
         if (span) span.textContent = parseFloat(el.value).toFixed(isFloat ? 2 : 0);
-        // The main 'input' listener for ADSR sliders is in main.js for visualization
-        // This one is just for the text span update
         el.addEventListener('input', (event) => {
             if (span) span.textContent = parseFloat(event.target.value).toFixed(isFloat ? 2 : 0);
         });
@@ -40,12 +38,11 @@ export function updatePitchRangeDisplay() {
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
     
     const clampedStartMidi = Math.max(Constants.MIDI_C2, Math.min(startMidi, Constants.MIDI_C5));
-     if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi) ) { // Prevent infinite loop if value not actually changing due to type
+     if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi) ) {
         DomElements.rangeStartNoteSlider.value = clampedStartMidi;
     }
     const finalStartMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const endMidi = finalStartMidi + length - 1;
-
 
     const startNoteName = MusicTheory.midiToNoteNameWithOctave(finalStartMidi) || 'N/A';
     const endNoteName = MusicTheory.midiToNoteNameWithOctave(endMidi) || 'N/A';
@@ -116,33 +113,33 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
     const currentChordObject = chordsArray[currentIndex];
     if (currentChordObject) {
         const displayCurrent = formatChordForDisplay(currentChordObject.name);
-        DomElements.currentChordDisplay.textContent = `Playing: ${displayCurrent}`;
+        DomElements.currentChordDisplay.innerHTML = `🎶 Playing: ${displayCurrent}`; // Use innerHTML
     } else {
-        DomElements.currentChordDisplay.textContent = "Playing: --";
+        DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --"; // Use innerHTML
     }
 
     if (currentIndex > 0 && chordsArray[currentIndex - 1]) {
         const prevChordObject = chordsArray[currentIndex - 1];
         const displayPrev = formatChordForDisplay(prevChordObject.name);
-        DomElements.prevChordDisplay.textContent = `Prev: ${displayPrev}`;
+        DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${displayPrev}`; // Use innerHTML
     } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
         const prevChordObject = chordsArray[chordsArray.length - 1];
         const displayPrev = formatChordForDisplay(prevChordObject.name);
-        DomElements.prevChordDisplay.textContent = `Prev: ${displayPrev}`;
+        DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${displayPrev}`; // Use innerHTML
     } else {
-        DomElements.prevChordDisplay.textContent = "Prev: --";
+        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --"; // Use innerHTML
     }
 
     if (currentIndex < chordsArray.length - 1 && chordsArray[currentIndex + 1]) {
         const nextChordObject = chordsArray[currentIndex + 1];
         const displayNext = formatChordForDisplay(nextChordObject.name);
-        DomElements.nextChordDisplay.textContent = `Next: ${displayNext}`;
+        DomElements.nextChordDisplay.innerHTML = `Next: ${displayNext} ⏭️`; // Use innerHTML
     } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
         const nextChordObject = chordsArray[0];
         const displayNext = formatChordForDisplay(nextChordObject.name);
-        DomElements.nextChordDisplay.textContent = `Next: ${displayNext}`;
+        DomElements.nextChordDisplay.innerHTML = `Next: ${displayNext} ⏭️`; // Use innerHTML
     } else {
-        DomElements.nextChordDisplay.textContent = "Next: --";
+        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --"; // Use innerHTML
     }
 }
 
@@ -182,11 +179,10 @@ export function applySettingsToUI(settings) {
     DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
     DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
 
-    setupSliderListeners(); // Sets up general slider text spans
+    setupSliderListeners();
     updateBeatIndicatorsVisibility(getBeatsPerMeasure());
 
-    // Explicitly update ADSR visualizer after settings are applied
-    if (DomElements.adsrCanvas) { // Check if canvas exists
+    if (DomElements.adsrCanvas) { 
         const adsrSettings = {
             attack: parseFloat(DomElements.attackSlider.value),
             decay: parseFloat(DomElements.decaySlider.value),
@@ -194,5 +190,12 @@ export function applySettingsToUI(settings) {
             release: parseFloat(DomElements.releaseSlider.value)
         };
         ADSRVisualizer.drawADSRGraph(adsrSettings);
+    }
+
+    // Update initial chord display text after settings applied
+    if (!AppState.sequencePlaying) {
+        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
+        DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
+        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
     }
 }

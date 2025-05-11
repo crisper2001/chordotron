@@ -6,7 +6,7 @@ import * as UIHelpers from './ui-helpers.js';
 import * as KeyboardUI from './keyboard-ui.js';
 import * as Constants from './constants.js';
 
-const REFERENCE_OCTAVE_FOR_PARSING = 2; // C2, which is MIDI 36
+const REFERENCE_OCTAVE_FOR_PARSING = 2;
 
 function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
@@ -67,16 +67,13 @@ function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorTy
 }
 
 
-function scheduleNextEvent() {
+function scheduleNextEvent(isSelectionPlayback) { 
     if (!AppState.sequencePlaying) return;
 
     AppState.setCurrentChordIndex(AppState.currentChordIndex + 1);
 
     if (AppState.currentChordIndex >= AppState.originalChords.length) {
-        if (DomElements.loopToggle.checked) {
-            AppState.setCurrentChordIndex(0);
-            AppState.setCurrentBeatInSequenceForVisualMetronome(0);
-        } else {
+        if (isSelectionPlayback || !DomElements.loopToggle.checked) {
             const currentADSR = {
                 release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value))
             };
@@ -87,6 +84,9 @@ function scheduleNextEvent() {
                 if (AppState.sequencePlaying) stopPlayback(true); 
             }, Math.max(0, uiResetDelay)));
             return;
+        } else { 
+            AppState.setCurrentChordIndex(0);
+            AppState.setCurrentBeatInSequenceForVisualMetronome(0);
         }
     }
 
@@ -123,7 +123,7 @@ function scheduleNextEvent() {
     AppState.setNextEventTime(AppState.nextEventTime + durationOfThisChordSlot);
 
     const timeUntilNextEventMs = (AppState.nextEventTime - AppState.audioCtx.currentTime) * 1000;
-    AppState.setCurrentSchedulerTimeoutId(setTimeout(scheduleNextEvent, Math.max(0, timeUntilNextEventMs - 50)));
+    AppState.setCurrentSchedulerTimeoutId(setTimeout(() => scheduleNextEvent(isSelectionPlayback), Math.max(0, timeUntilNextEventMs - 50)));
 }
 
 export function startPlayback() {
@@ -135,12 +135,33 @@ export function startPlayback() {
     const selectedInputMode = document.querySelector('input[name="inputMode"]:checked').value;
     const currentKeyModeVal = DomElements.keyModeSelect.value;
     let parsedChords;
+    let isSelectionPlayback = false;
+
+    let chordSourceString;
+    let activeTextarea;
 
     if (selectedInputMode === 'chords') {
-        parsedChords = MusicTheory.parseDirectChordString(DomElements.chordInputEl.value, defaultBeatsPerChord);
+        activeTextarea = DomElements.chordInputEl;
+    } else {
+        activeTextarea = DomElements.scaleDegreeInputEl;
+    }
+
+    const selectionStart = activeTextarea.selectionStart;
+    const selectionEnd = activeTextarea.selectionEnd;
+
+    if (selectionStart !== selectionEnd && selectionEnd > selectionStart) {
+        chordSourceString = activeTextarea.value.substring(selectionStart, selectionEnd);
+        isSelectionPlayback = true;
+    } else {
+        chordSourceString = activeTextarea.value;
+        isSelectionPlayback = false;
+    }
+
+    if (selectedInputMode === 'chords') {
+        parsedChords = MusicTheory.parseDirectChordString(chordSourceString, defaultBeatsPerChord);
     } else {
         const currentSongKey = DomElements.songKeySelect.value;
-        parsedChords = MusicTheory.parseScaleDegreeString(DomElements.scaleDegreeInputEl.value, currentSongKey, currentKeyModeVal, defaultBeatsPerChord);
+        parsedChords = MusicTheory.parseScaleDegreeString(chordSourceString, currentSongKey, currentKeyModeVal, defaultBeatsPerChord);
     }
 
     const minMidiTarget = parseInt(DomElements.rangeStartNoteSlider.value, 10);
@@ -148,10 +169,9 @@ export function startPlayback() {
     const maxMidiTarget = minMidiTarget + rangeLength - 1;
     
     let rangeIsValid = true;
-    if (minMidiTarget < Constants.MIDI_C2 || // Check against new overall min
-        maxMidiTarget > Constants.MIDI_B5 || // Check against new overall max
+    if (minMidiTarget < Constants.MIDI_C2 || 
+        maxMidiTarget > Constants.MIDI_B5 || 
         minMidiTarget >= maxMidiTarget) {
-        console.warn(`Playback Start: Invalid MIDI range from sliders: ${minMidiTarget} - ${maxMidiTarget}. Using default voicing.`);
         rangeIsValid = false; 
     }
 
@@ -163,24 +183,21 @@ export function startPlayback() {
     
     const finalChords = parsedChords.map(chordObj => {
         const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(chordObj.name, REFERENCE_OCTAVE_FOR_PARSING);
-        
         const currentMinMidi = rangeIsValid ? minMidiTarget : null;
         const currentMaxMidi = rangeIsValid ? maxMidiTarget : null;
-
         let voicedFrequencies = MusicTheory.voiceFrequenciesInMidiRange(initialFrequencies, rootNoteName, currentMinMidi, currentMaxMidi);
-        
         return { ...chordObj, frequencies: voicedFrequencies };
     });
     AppState.setOriginalChords(finalChords);
 
     if (AppState.originalChords.length === 0 || AppState.originalChords.every(c => !c.frequencies || c.frequencies.length === 0) ) {
-        DomElements.currentChordDisplay.textContent = "No valid chords to play.";
+        DomElements.currentChordDisplay.innerHTML = "🎶 No valid chords to play."; // Updated
         KeyboardUI.clearKeyboardHighlights();
         return;
     }
     
     AppState.setSequencePlaying(true);
-    DomElements.playStopButton.textContent = "Stop";
+    DomElements.playStopButton.innerHTML = "⏹️ Stop"; // Use innerHTML for emoji
     DomElements.playStopButton.classList.add('playing');
     UIHelpers.setControlsDisabled(true);
     
@@ -189,13 +206,13 @@ export function startPlayback() {
     const beatsPerMeasureForVisuals = UIHelpers.getBeatsPerMeasure();
     UIHelpers.updateBeatIndicatorsVisibility(beatsPerMeasureForVisuals);
 
-    DomElements.prevChordDisplay.textContent = "Prev: --";
-    DomElements.nextChordDisplay.textContent = "Next: --";
-    DomElements.currentChordDisplay.textContent = "Playing: --";
+    DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --"; // Updated
+    DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --"; // Updated
+    DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --"; // Updated
     KeyboardUI.clearKeyboardHighlights();
 
     AppState.setNextEventTime(AppState.audioCtx.currentTime + 0.1); 
-    scheduleNextEvent();
+    scheduleNextEvent(isSelectionPlayback);
 }
 
 export function stopPlayback(clearDisplay = true) {
@@ -217,13 +234,13 @@ export function stopPlayback(clearDisplay = true) {
     AppState.setActiveOscillators([]);
 
     if (clearDisplay) {
-        DomElements.currentChordDisplay.textContent = "Stopped.";
-        DomElements.prevChordDisplay.textContent = "Prev: --";
-        DomElements.nextChordDisplay.textContent = "Next: --";
+        DomElements.currentChordDisplay.innerHTML = "🎶 Stopped."; // Updated
+        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --"; // Updated
+        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --"; // Updated
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
         KeyboardUI.clearKeyboardHighlights(); 
     }
-    DomElements.playStopButton.textContent = "Play";
+    DomElements.playStopButton.innerHTML = "▶️ Play"; // Use innerHTML for emoji
     DomElements.playStopButton.classList.remove('playing');
     UIHelpers.setControlsDisabled(false);
 }
