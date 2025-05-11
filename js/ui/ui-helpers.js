@@ -1,8 +1,8 @@
-import * as DomElements from './dom-elements.js';
-import * as Constants from './constants.js';
-import * as AppState from './state.js';
-import { stopPlayback } from './playback-scheduler.js';
-import * as MusicTheory from './music-theory.js';
+import * as DomElements from '../dom/dom-elements.js';
+import * as Constants from '../config/constants.js';
+import * as AppState from '../config/state.js';
+import { stopPlayback } from '../audio/playback-scheduler.js';
+import * as MusicTheory from '../utils/music-theory.js';
 import * as ADSRVisualizer from './adsr-visualizer.js';
 
 function clearInputErrorStates() {
@@ -20,7 +20,6 @@ export function setControlsDisabled(disabled) {
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
         if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
         if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
-
     }
 }
 
@@ -29,8 +28,6 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
     
     if(DomElements.parametersControlsFieldset) {
          DomElements.parametersControlsFieldset.disabled = isKeyDown;
-         // When parametersControlsFieldset is disabled, all its children are also effectively disabled.
-         // We just need to ensure Master Gain is re-enabled if parametersControlsFieldset is enabled AND no key is down.
          if (DomElements.masterGainSlider) {
             DomElements.masterGainSlider.disabled = isKeyDown; 
             const masterGainLabel = document.querySelector('label[for="masterGain"]');
@@ -45,7 +42,6 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
         DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
     }
 
-
     if (isKeyDown) {
         if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = false;
     } else {
@@ -54,7 +50,6 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
         }
     }
 }
-
 
 export function updateUIModeVisuals(mode) {
     DomElements.chordNameInputArea.style.display = mode === 'chords' ? 'flex' : 'none';
@@ -71,7 +66,6 @@ export function updateUIModeVisuals(mode) {
         DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
     }
 
-
     if (isLivePlayingMode) {
         if (AppState.sequencePlaying) stopPlayback(true);
         DomElements.prevChordDisplay.innerHTML = "⏮️ --";
@@ -83,7 +77,6 @@ export function updateUIModeVisuals(mode) {
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
         if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
         if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
-
 
     } else {
         updateBeatIndicatorsVisibility(getBeatsPerMeasure());
@@ -101,7 +94,6 @@ export function updateUIModeVisuals(mode) {
         if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = false;
     }
 }
-
 
 export function setupSliderListeners() {
     const sliders = [
@@ -159,7 +151,6 @@ export function updateBeatIndicatorsVisibility(beatsPerMeasure) {
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
     if (currentInputMode === 'livePlaying') return;
 
-
     for (let i = 0; i < beatsPerMeasure; i++) {
         const indicator = document.createElement('div');
         indicator.classList.add('beat-indicator');
@@ -184,7 +175,6 @@ function normalizeDisplayNoteName(noteNameStr) {
     }
     return root + accidental;
 }
-
 
 export function formatChordForDisplay(chordNameToFormat) {
     if (!chordNameToFormat || typeof chordNameToFormat !== 'string') return "--";
@@ -250,7 +240,6 @@ export function formatChordForDisplay(chordNameToFormat) {
     return finalDisplayName;
 }
 
-
 export function updateChordContextDisplay(currentIndex, chordsArray) {
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
     if (currentInputMode === 'livePlaying') {
@@ -267,7 +256,6 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
         DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
         return;
     }
-
 
     const formatNameForUI = (chordObject) => {
         if (!chordObject) return "--";
@@ -378,7 +366,6 @@ export function applySettingsToUI(settings) {
     document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
     updateUIModeVisuals(modeToSelect);
 
-
     setupSliderListeners();
     
     updateKnobValueSpan(DomElements.attackSlider, DomElements.attackValueSpan);
@@ -387,13 +374,11 @@ export function applySettingsToUI(settings) {
     updateKnobValueSpan(DomElements.releaseSlider, DomElements.releaseValueSpan);
     updateKnobValueSpan(DomElements.synthGainSlider, DomElements.synthGainValueSpan);
 
-
     if (!AppState.sequencePlaying && modeToSelect !== "livePlaying") {
         DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
         DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
         DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
     }
-
 
     if (DomElements.adsrCanvas) { 
         const adsrSettings = {

@@ -1,6 +1,6 @@
-import * as DomElements from './dom-elements.js';
-import { applySettingsToUI } from './ui-helpers.js';
-import * as Constants from './constants.js';
+import * as DomElements from '../dom/dom-elements.js';
+import { applySettingsToUI } from '../ui/ui-helpers.js';
+import * as Constants from '../config/constants.js';
 
 const AUTOSAVE_KEY = 'chordotronAutosaveData_v2';
 

@@ -1,10 +1,10 @@
-import * as AppState from './state.js';
-import * as DomElements from './dom-elements.js';
-import * as MusicTheory from './music-theory.js';
+import * as AppState from '../config/state.js';
+import * as DomElements from '../dom/dom-elements.js';
+import * as MusicTheory from '../utils/music-theory.js';
 import * as AudioCore from './audio-core.js';
-import * as UIHelpers from './ui-helpers.js';
-import * as KeyboardUI from './keyboard-ui.js';
-import * as Constants from './constants.js';
+import * as UIHelpers from '../ui/ui-helpers.js';
+import * as KeyboardUI from '../ui/keyboard-ui.js';
+import * as Constants from '../config/constants.js';
 
 const REFERENCE_OCTAVE_FOR_PARSING = 2;
 
@@ -32,7 +32,6 @@ function createMetronomeTick(time, isDownbeat) {
             if (isDownbeat) indicators[visualBeatIndex].classList.add('downbeat');
         }
     }, Math.max(0, visualChangeTime));
-
 
     if (DomElements.metronomeAudioToggle.checked && finalMetronomeGain > 0) {
         AudioCore.playTimedFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain, 'metronome');
@@ -67,7 +66,6 @@ function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorTy
 
     return noteHeldDuration;
 }
-
 
 function scheduleNextEvent(isSelectionPlayback) { 
     if (!AppState.sequencePlaying) return;
@@ -277,7 +275,6 @@ export function stopPlayback(clearDisplay = true) {
         AudioCore.stopLiveFrequencies(keyId, releaseTimeFromUI); 
     });
     AppState.activeLiveKeys.clear();
-
 
     if (clearDisplay) {
         DomElements.currentChordDisplay.innerHTML = "🎶 Stopped.";

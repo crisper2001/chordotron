@@ -85,7 +85,6 @@ export const KEY_TO_LIVE_PLAYING_INDEX_MAP = {
     '7': 6, '8': 7, '9': 8, '0': 9, '-': 10, '=': 11
 };
 
-
 export const defaultSettings = {
     bpm: 120, attack: 0.01, decay: 0.1, sustain: 0.7, release: 0.01,
     timeSignature: "4/4", oscillatorType: "triangle",

@@ -1,17 +1,16 @@
-import * as DomElements from './dom-elements.js';
-import * as AppState from './state.js';
-import * as Constants from './constants.js';
-import * as UIHelpers from './ui-helpers.js';
-import * as SettingsManager from './settings-manager.js';
-import { startPlayback, stopPlayback } from './playback-scheduler.js';
-import * as KeyboardUI from './keyboard-ui.js';
-import * as MusicTheory from './music-theory.js';
-import * as ADSRVisualizer from './adsr-visualizer.js';
-import * as AudioCore from './audio-core.js';
+import * as DomElements from './dom/dom-elements.js';
+import * as AppState from './config/state.js';
+import * as Constants from './config/constants.js';
+import * as UIHelpers from './ui/ui-helpers.js';
+import * as SettingsManager from './utils/settings-manager.js';
+import { startPlayback, stopPlayback } from './audio/playback-scheduler.js';
+import * as KeyboardUI from './ui/keyboard-ui.js';
+import * as MusicTheory from './utils/music-theory.js';
+import * as ADSRVisualizer from './ui/adsr-visualizer.js';
+import * as AudioCore from './audio/audio-core.js';
+import { initHelpGuideModalLogic } from './ui/modal-handler.js';
 
-const HELP_MODAL_SHOWN_KEY = 'chordotronHelpShown_v3';
 const REFERENCE_OCTAVE_FOR_LIVE_PLAYING = 2;
-
 
 function attachAutosaveListeners() {
     const elementsToAutosave = [
@@ -38,7 +37,6 @@ function attachAutosaveListeners() {
         });
     });
 }
-
 
 DomElements.playStopButton.addEventListener('click', () => {
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
@@ -128,7 +126,6 @@ document.addEventListener('keyup', (event) => {
     }
 });
 
-
 function playLiveChord(chordString, keyIdentifier) {
     if (AppState.audioCtx.state === 'suspended') {
         AppState.audioCtx.resume().catch(e => {});
@@ -156,7 +153,6 @@ function playLiveChord(chordString, keyIdentifier) {
         maxMidiTarget,
         bassNoteString 
     );
-
 
     if (voicingResult.frequencies && voicingResult.frequencies.length > 0) {
         const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
@@ -188,7 +184,6 @@ function playLiveChord(chordString, keyIdentifier) {
         KeyboardUI.clearKeyboardHighlights();
     }
 }
-
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new song and reset all settings to their defaults? This will also clear your autosaved project.")) {
@@ -286,7 +281,6 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
     if (currentInputMode === 'livePlaying') return;
     if (!AppState.sequencePlaying) return;
 
-
     if (!event.target.checked) {
         const now = AppState.audioCtx.currentTime;
         
@@ -301,44 +295,6 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
         });
     }
 });
-
-function openHelpModal() {
-    if (DomElements.helpModalOverlay) {
-        DomElements.helpModalOverlay.style.display = 'flex';
-    }
-}
-
-function closeHelpModal() {
-    if (DomElements.helpModalOverlay) {
-        DomElements.helpModalOverlay.style.display = 'none';
-    }
-}
-
-function initHelpGuideModalLogic() {
-    if (DomElements.helpButton) {
-        DomElements.helpButton.addEventListener('click', openHelpModal);
-    }
-    if (DomElements.modalCloseButton) {
-        DomElements.modalCloseButton.addEventListener('click', closeHelpModal);
-    }
-    if (DomElements.helpModalOverlay) {
-        DomElements.helpModalOverlay.addEventListener('click', (event) => {
-            if (event.target === DomElements.helpModalOverlay) {
-                closeHelpModal();
-            }
-        });
-    }
-
-    try {
-        const helpShown = localStorage.getItem(HELP_MODAL_SHOWN_KEY);
-        if (!helpShown) {
-            openHelpModal();
-            localStorage.setItem(HELP_MODAL_SHOWN_KEY, 'true');
-        }
-    } catch (e) {
-        openHelpModal();
-    }
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
@@ -355,7 +311,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!loadedFromAutosave) {
          SettingsManager.autosaveCurrentSettings(); 
     }
-
 
     KeyboardUI.initKeyboard();
     updateKeyboardRangeFromSliders();

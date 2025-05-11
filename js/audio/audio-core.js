@@ -1,5 +1,5 @@
-import * as AppState from './state.js';
-import * as DomElements from './dom-elements.js';
+import * as AppState from '../config/state.js';
+import * as DomElements from '../dom/dom-elements.js';
 
 function createSoundSource(freq, startTime, adsr, noteHeldDuration, oscillatorType, targetGainValue) {
     if (freq <= 0) return null;

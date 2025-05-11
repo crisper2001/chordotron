@@ -1,4 +1,4 @@
-import * as Constants from './constants.js';
+import * as Constants from '../config/constants.js';
 
 const DEBUG_VOICING = false; 
 
@@ -10,35 +10,29 @@ function normalizeNoteName(noteName) {
     let accidental = '';
     if (noteName.length > 1) {
         const accCandidate = noteName.substring(1);
-        // Prioritize exact matches for ##, bb
         if (accCandidate === '##' || accCandidate === 'bb') {
             accidental = accCandidate;
         } else if (accCandidate === '#' || accCandidate === 'b') {
             accidental = accCandidate;
         } else if (accCandidate.length === 1 && (accCandidate.toLowerCase() === '#' || accCandidate.toLowerCase() === 'b') ) {
-            // handles c# or cb -> C# or Cb
             accidental = accCandidate.toLowerCase() === '#' ? '#' : 'b';
         }
     }
     
     let normalized = root + accidental;
 
-    // Direct check against NOTE_NAMES_MAP which contains aliases like Db, C#
     if (Constants.NOTE_NAMES_MAP[normalized] !== undefined) return normalized;
 
-    // If not found, try to reconstruct with first letter capitalized and rest as is if it's a valid accidental
     let finalRoot = noteName.charAt(0).toUpperCase();
     let finalAcc = "";
     if (noteName.length > 1) {
         let tempAcc = noteName.substring(1);
         const lowerTempAcc = tempAcc.toLowerCase();
-         // Check for valid single or double accidentals, keep original casing if just # or b
         if (tempAcc === '#' || tempAcc === 'b' || tempAcc === '##' || tempAcc === 'bb') {
             finalAcc = tempAcc;
         } else if (lowerTempAcc === '#' || lowerTempAcc === 'b' || lowerTempAcc === '##' || lowerTempAcc === 'bb') {
-           // this might be redundant if the above is good enough, but for safety for Db, gb etc.
-           finalAcc = tempAcc; // Use original if it resolves, e.g. 'Db'
-           if (Constants.NOTE_NAMES_MAP[finalRoot + finalAcc] === undefined) { // if 'Db' isn't a key, try 'db'
+           finalAcc = tempAcc; 
+           if (Constants.NOTE_NAMES_MAP[finalRoot + finalAcc] === undefined) { 
                 if (Constants.NOTE_NAMES_MAP[finalRoot + tempAcc.toLowerCase()] !== undefined) {
                     finalAcc = tempAcc.toLowerCase();
                 }
@@ -48,24 +42,19 @@ function normalizeNoteName(noteName) {
     let checkName = finalRoot + finalAcc;
     if (Constants.NOTE_NAMES_MAP[checkName] !== undefined) return checkName;
 
-
-    // Fallback for simple C#, Db etc if previous logic missed it due to mixed/incorrect input casing
     if (noteName.length === 2) {
         let simpleCheck = noteName.charAt(0).toUpperCase() + noteName.charAt(1).toLowerCase();
         if (Constants.NOTE_NAMES_MAP[simpleCheck] !== undefined) return simpleCheck;
         let sharpCheck = noteName.charAt(0).toUpperCase() + '#';
-        if (noteName.charAt(1).toLowerCase() === 's' && Constants.NOTE_NAMES_MAP[sharpCheck] !== undefined) return sharpCheck; // C+s -> C#
+        if (noteName.charAt(1).toLowerCase() === 's' && Constants.NOTE_NAMES_MAP[sharpCheck] !== undefined) return sharpCheck; 
     }
     
-    // If it's just a single letter A-G
     if (noteName.length === 1 && root >= 'A' && root <= 'G') {
         if (Constants.NOTE_NAMES_MAP[root] !== undefined) return root;
     }
 
-
-    return null; // Return null if no valid normalization found
+    return null; 
 }
-
 
 function getNoteFrequencyAbsolute(noteName, octave) {
     const normalizedForLookup = normalizeNoteName(noteName); 
@@ -222,8 +211,7 @@ export function noteNameToMidi(noteNameWithOctave) {
     let notePartForMap = normalizeNoteName(match[1]); 
     const octavePart = parseInt(match[2], 10);
     
-    if (!notePartForMap) { // Check if normalizeNoteName returned null
-         // Try to handle cases like 'Cb4' or 'E#4' which might not be in NOTE_NAMES_MAP directly but are valid
+    if (!notePartForMap) { 
         const upperNote = match[1].toUpperCase();
         if (upperNote === 'CB') return Constants.NOTE_NAMES_MAP['B'] + (octavePart - 1) * Constants.SEMITONES_IN_OCTAVE + 12;
         if (upperNote === 'E#') return Constants.NOTE_NAMES_MAP['F'] + octavePart * Constants.SEMITONES_IN_OCTAVE + 12;
@@ -302,7 +290,6 @@ function voiceChordCore(initialFrequencies, chordRootNoteName, minMidi, maxMidi)
     const rootPitchClass = Constants.NOTE_NAMES_MAP[normalizedChordRootForCore];
     const initialRootMidiGuess = initialMidiNotes.find(note => (note % 12) === rootPitchClass) || initialMidiNotes[0];
 
-
     let anchoredRootMidi = minMidiConstrained - (minMidiConstrained % 12) + rootPitchClass;
     if (anchoredRootMidi < minMidiConstrained) anchoredRootMidi += Constants.SEMITONES_IN_OCTAVE;
     
@@ -364,7 +351,6 @@ function findLowestMidiInstanceInRange(noteName, minMidi, maxMidi) {
     return null;
 }
 
-
 export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRootName, userMinMidi, userMaxMidi, bassNoteNameFromSlash = null) {
     if (DEBUG_VOICING) {
     }
@@ -374,8 +360,6 @@ export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRo
     let minMainChordNotesForSlashSuccess = 1; 
 
     if (!initialMainChordFrequencies || initialMainChordFrequencies.length === 0) {
-        // If the main chord is empty (e.g. just a bass note like "C/G" where C is invalid)
-        // and there's a slash bass, try to play just the bass.
         if (bassNoteNameFromSlash) {
             const normalizedBass = normalizeNoteName(bassNoteNameFromSlash);
             if (normalizedBass) {
@@ -388,13 +372,11 @@ export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRo
         return { frequencies: [], playedAsSlash: false };
     }
 
-
     if (initialMainChordFrequencies.length >= 3) { 
         minMainChordNotesForSlashSuccess = 2; 
     } else if (initialMainChordFrequencies.length === 0) { 
         minMainChordNotesForSlashSuccess = 0; 
     }
-
 
     const normalizedMainChordRoot = mainChordRootName ? normalizeNoteName(mainChordRootName) : null;
     const normalizedBassNoteFromSlash = bassNoteNameFromSlash ? normalizeNoteName(bassNoteNameFromSlash) : null;
@@ -406,7 +388,7 @@ export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRo
             const mainChordVoicedWithBass = voiceChordCore(
                 initialMainChordFrequencies,
                 normalizedMainChordRoot,
-                bassMidiToBePlayed + 1, // Ensure main chord notes are above the bass note
+                bassMidiToBePlayed + 1, 
                 userMaxMidi
             );
 
@@ -421,14 +403,11 @@ export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRo
                  mainChordRootIsPresentInVoicing = true; 
             }
 
-
             if (mainChordVoicedWithBass.length >= minMainChordNotesForSlashSuccess && mainChordRootIsPresentInVoicing) {
                 playedMidiNotes.push(bassMidiToBePlayed);
                 playedMidiNotes.push(...mainChordVoicedWithBass);
                 playedAsSlash = true; 
             } else {
-                 // Fallback: if main chord voicing above bass failed, try voicing main chord normally
-                 // AND then add the bass note if it fits without overlapping lowest main chord note
                 const mainChordVoicedNormally = voiceChordCore(
                     initialMainChordFrequencies,
                     normalizedMainChordRoot,
@@ -436,20 +415,20 @@ export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRo
                     userMaxMidi
                 );
                 if (mainChordVoicedNormally.length > 0) {
-                    if (bassMidiToBePlayed < mainChordVoicedNormally[0]) { // Bass is below lowest main chord note
+                    if (bassMidiToBePlayed < mainChordVoicedNormally[0]) { 
                         playedMidiNotes.push(bassMidiToBePlayed);
                         playedMidiNotes.push(...mainChordVoicedNormally);
                         playedAsSlash = true;
-                    } else { // Bass would collide or be above, just play main chord
+                    } else { 
                         playedMidiNotes.push(...mainChordVoicedNormally);
                         playedAsSlash = false;
                     }
-                } else { // Main chord itself is empty, just try to play bass
+                } else { 
                     playedMidiNotes.push(bassMidiToBePlayed);
-                    playedAsSlash = true; // Technically true as it's the intended bass
+                    playedAsSlash = true; 
                 }
             }
-        } else { // Bass note not found in range
+        } else { 
             const mainChordVoicedNormally = voiceChordCore(
                 initialMainChordFrequencies,
                 normalizedMainChordRoot,
@@ -458,7 +437,7 @@ export function voiceFrequenciesInRange(initialMainChordFrequencies, mainChordRo
             );
             playedMidiNotes.push(...mainChordVoicedNormally);
         }
-    } else { // No slash bass
+    } else { 
         const mainChordVoicedNormally = voiceChordCore(
             initialMainChordFrequencies,
             normalizedMainChordRoot,

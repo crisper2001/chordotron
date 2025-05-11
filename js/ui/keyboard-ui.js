@@ -1,6 +1,6 @@
-import * as DomElements from './dom-elements.js';
-import * as MusicTheory from './music-theory.js';
-import { ALL_NOTE_NAMES, SEMITONES_IN_OCTAVE, MIDI_C2, MIDI_B5 } from './constants.js';
+import * as DomElements from '../dom/dom-elements.js';
+import * as MusicTheory from '../utils/music-theory.js';
+import { ALL_NOTE_NAMES, SEMITONES_IN_OCTAVE, MIDI_B5 } from '../config/constants.js';
 
 let keyElementsMap = {};
 let currentlyActiveMidiNotes = [];

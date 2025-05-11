@@ -1,4 +1,4 @@
-import * as DomElements from './dom-elements.js';
+import * as DomElements from '../dom/dom-elements.js';
 
 let canvas = null;
 let ctx = null;
@@ -110,7 +110,6 @@ export function drawADSRGraph(adsrSettings, currentSynthGain) {
     ctx.textAlign = 'start';
     ctx.setLineDash([]); 
 }
-
 
 export function initADSRVisualizer() {
     canvas = DomElements.adsrCanvas;
