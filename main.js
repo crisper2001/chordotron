@@ -126,6 +126,24 @@ function updateADSRVisualizerFromSliders() {
     }
 });
 
+DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
+    if (!AppState.sequencePlaying) return;
+
+    if (!event.target.checked) {
+        const now = AppState.audioCtx.currentTime;
+        
+        AppState.activeOscillators.forEach(activeSound => {
+            if (activeSound.type === 'metronome') {
+                try {
+                    activeSound.gainNode.gain.cancelScheduledValues(now);
+                    activeSound.gainNode.gain.linearRampToValueAtTime(0, now + 0.02);
+                } catch (e) {
+                    console.warn("Could not immediately silence metronome sound:", e);
+                }
+            }
+        });
+    }
+});
 
 document.addEventListener('DOMContentLoaded', () => {
     const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
@@ -150,3 +168,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.addEventListener('click', initAudioContext, { once: true });
     document.body.addEventListener('touchend', initAudioContext, { once: true });
 });
+

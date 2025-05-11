@@ -1,6 +1,6 @@
 import * as AppState from './state.js';
 
-export function playFrequencies(frequencies, noteHeldDuration, startTime, adsr, currentOscillatorType, combinedGainValue) {
+export function playFrequencies(frequencies, noteHeldDuration, startTime, adsr, currentOscillatorType, combinedGainValue, type = 'chord') {
     const { attack, decay, sustain, release } = adsr;
     const totalSoundDuration = noteHeldDuration + release;
     const currentActiveOscillators = [];
@@ -28,7 +28,7 @@ export function playFrequencies(frequencies, noteHeldDuration, startTime, adsr, 
         gainNode.connect(AppState.audioCtx.destination);
         oscillator.start(startTime);
         oscillator.stop(startTime + totalSoundDuration);
-        currentActiveOscillators.push({ oscillator, gainNode, stopTime: startTime + totalSoundDuration });
+        currentActiveOscillators.push({ oscillator, gainNode, stopTime: startTime + totalSoundDuration, type });
     });
     AppState.setActiveOscillators([...AppState.activeOscillators, ...currentActiveOscillators]);
 }
