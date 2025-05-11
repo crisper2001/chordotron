@@ -76,7 +76,6 @@ export function updateBeatIndicatorsVisibility(beatsPerMeasure) {
     }
 }
 
-// Helper to normalize note name display: C, C#, Db etc.
 function normalizeDisplayNoteName(noteNameStr) {
     if (!noteNameStr || typeof noteNameStr !== 'string' || noteNameStr.length === 0) {
         return "";
@@ -84,7 +83,6 @@ function normalizeDisplayNoteName(noteNameStr) {
     let root = noteNameStr.charAt(0).toUpperCase();
     let accidental = "";
     if (noteNameStr.length > 1) {
-        // Keep original #/b if that's what it is, otherwise it's part of quality
         const accCandidate = noteNameStr.substring(1);
         if (accCandidate === '#' || accCandidate === 'b') {
             accidental = accCandidate;
@@ -101,25 +99,17 @@ export function formatChordForDisplay(chordNameToFormat) {
 
     let displayChordName = chordNameToFormat;
     
-    // Standardize symbols like 'o' to '°' after casing logic
     const replaceSymbols = (name) => {
         let tempName = name;
-        // These replacements are simple string replacements.
-        // More complex logic might be needed if qualities overlap with these symbols.
-        if (Constants.DISPLAY_SYMBOL_MAP) { // Check if map exists
+        if (Constants.DISPLAY_SYMBOL_MAP) {
             for (const key in Constants.DISPLAY_SYMBOL_MAP) {
-                // Use a regex to replace only if key is a standalone quality or part of a known pattern
-                // This is tricky; for now, simple replacement.
-                // Example: replace 'o7' with '°7', but not 'o' in 'dorian'
-                 if (tempName.includes(key)) { // Basic check
-                    // A more robust way would be to parse quality then map symbols
+                 if (tempName.includes(key)) {
                  }
             }
         }
-        // Specific common replacements if not covered by a generic map approach
-        tempName = tempName.replace(/h7/g, 'ø7').replace(/ø7/g, 'ø7'); // ø7 to ensure it's not h7 again
-        tempName = tempName.replace(/(?<![A-Ga-g])o7/g, '°7'); // dim7
-        tempName = tempName.replace(/(?<![A-Ga-g])o(?!n)(?!r)(?!c)/g, '°'); // dim, avoid 'dorian', 'locrian' etc.
+        tempName = tempName.replace(/h7/g, 'ø7'); 
+        tempName = tempName.replace(/(?<![A-Ga-g])o7/g, '°7');
+        tempName = tempName.replace(/(?<![A-Ga-g])o(?!n)(?!r)(?!c)/g, '°');
         return tempName;
     };
     
@@ -127,37 +117,42 @@ export function formatChordForDisplay(chordNameToFormat) {
     let mainPart = parts[0];
     const bassPart = parts.length > 1 ? normalizeDisplayNoteName(parts[1]) : null;
 
-    // Extract root and quality from mainPart
     const rootMatch = mainPart.match(/^([A-Ga-g][#b]?)(.*)$/);
     if (rootMatch) {
         const rootDisplay = normalizeDisplayNoteName(rootMatch[1]);
         let qualityDisplay = rootMatch[2];
 
-        // Convert common quality text to lowercase, except for specific cases or symbols
-        // e.g., MAJ7 -> maj7, MIN -> min, DIM -> dim, AUG -> aug
-        // More complex qualities like add9, sus4, etc., should also be lowercased.
-        // Numerals (7, 9, 11, 13) and alterations (#5, b9) usually stay as is.
-        
-        // A simple approach for common ones:
-        qualityDisplay = qualityDisplay.replace(/MAJ7/ig, 'maj7')
-                                      .replace(/MIN7/ig, 'min7')
-                                      .replace(/DOM7/ig, '7') // Assuming DOM7 was a user error for 7
-                                      .replace(/MAJ/ig, 'maj')
-                                      .replace(/MIN/ig, 'min')
-                                      .replace(/DIM/ig, 'dim')
-                                      .replace(/AUG/ig, 'aug')
-                                      .replace(/SUS/ig, 'sus');
-        // M by itself for major, m for minor (common shorthand)
-        if (qualityDisplay.toUpperCase() === 'M') qualityDisplay = ''; // Major triad implies no quality text or 'maj'
-        else if (qualityDisplay === 'm') qualityDisplay = 'm'; // Explicitly minor
-
+        if (qualityDisplay === 'M') {
+            qualityDisplay = '';
+        } else if (qualityDisplay === 'm') {
+        } else {
+            qualityDisplay = qualityDisplay
+                .replace(/MAJ7/ig, 'maj7')
+                .replace(/MIN7/ig, 'min7')
+                .replace(/MAJOR/ig, '')
+                .replace(/MINOR/ig, 'm')
+                .replace(/MAJ(?!7)/ig, '')
+                .replace(/MIN(?!7)/ig, 'm')
+                .replace(/DIMINISHED/ig, 'dim')
+                .replace(/DIM/ig, 'dim')
+                .replace(/AUGMENTED/ig, 'aug')
+                .replace(/AUG/ig, 'aug')
+                .replace(/SUSPENDED/ig, 'sus')
+                .replace(/SUS/ig, 'sus');
+            
+            if (qualityDisplay.toLowerCase() === 'maj') {
+                qualityDisplay = '';
+            }
+            else if (qualityDisplay.toLowerCase() === 'min') {
+                 qualityDisplay = 'm';
+            }
+        }
         mainPart = rootDisplay + qualityDisplay;
     }
     
-    // Reconstruct and apply symbol replacements
     let finalDisplayName = replaceSymbols(mainPart);
     if (bassPart) {
-        finalDisplayName += "/" + replaceSymbols(bassPart); // Bass note doesn't have quality typically
+        finalDisplayName += "/" + normalizeDisplayNoteName(bassPart); 
     }
     
     return finalDisplayName;
@@ -178,17 +173,16 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
                 displayName = chordObject.originalInputToken.replace(/\(\d+\)$/, ''); 
             }
         } else if (chordObject.name && chordObject.name !== '?') { 
-            // Reconstruct from parsed name and bassNoteName, respecting wasSlashPlayed
             const mainChordMatch = chordObject.name.match(/^([A-Ga-g][#b]?)(.*)$/);
             if (mainChordMatch) {
                 const root = normalizeDisplayNoteName(mainChordMatch[1]);
-                const quality = mainChordMatch[2]; // Quality from chordObject.name
+                const quality = mainChordMatch[2];
                 displayName = root + quality;
 
                 if (chordObject.bassNoteName && chordObject.wasSlashPlayed === true) {
                     displayName += "/" + normalizeDisplayNoteName(chordObject.bassNoteName);
                 }
-            } else { // Should not happen if name is valid
+            } else { 
                 displayName = chordObject.name;
                  if (chordObject.bassNoteName && chordObject.wasSlashPlayed === true) {
                     displayName += "/" + normalizeDisplayNoteName(chordObject.bassNoteName);
@@ -197,7 +191,7 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
         } else {
             displayName = chordObject.originalInputToken || "--"; 
         }
-        return formatChordForDisplay(displayName); // Apply final casing and symbol formatting
+        return formatChordForDisplay(displayName); 
     };
 
     const currentChordObject = chordsArray[currentIndex];
