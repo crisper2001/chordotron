@@ -188,10 +188,6 @@ input[type="radio"] {
     accent-color: #007bff; 
 }
 
-input[type="checkbox"] { 
-    /* Hidden for button-style toggles */
-}
-
 textarea { 
     resize: vertical; 
     min-height: 80px; 
@@ -357,72 +353,96 @@ input[type="text"].input-error {
     color: #0056b3;
 }
 
-.adsr-group {
+/* --- Synth Section --- */
+.synth-controls-group {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center the knobs container */
+    align-items: stretch;
+}
+.oscillator-control-inline {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px; /* Spacing below oscillator */
+}
+.oscillator-control-inline label {
+    margin-bottom: 0; /* Remove default bottom margin */
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+.oscillator-control-inline select {
+    flex-grow: 1; /* Allow select to take remaining space */
+    margin-top: 0; /* Remove default top margin */
+}
+
+.adsr-section {
+    margin-top: 5px; /* Reduced space */
+    padding-top: 8px; /* Reduced padding */
+    border-top: 1px dashed #eee;
+}
+.section-sub-label {
+    font-size: 0.85em;
+    font-weight: 600;
+    color: #6c757d;
+    margin-bottom: 5px; /* Reduced margin */
+    display: block;
 }
 .adsr-canvas-container {
     width: 100%;
-    max-width: 250px; /* Limit canvas width */
-    margin-bottom: 15px; /* More space for knobs */
+    max-width: 220px; /* Slightly smaller canvas for compactness */
+    margin: 0 auto 10px auto; 
     display: flex;
     justify-content: center;
 }
 #adsrCanvas {
     border: 1px solid #ccc;
     background-color: #f9f9f9;
-    width: 100%; /* Make canvas responsive within its container */
-    height: auto; /* Maintain aspect ratio (or set fixed height) */
-    aspect-ratio: 220 / 120; /* Based on its HTML attributes */
+    width: 100%; 
+    height: auto; 
+    aspect-ratio: 200 / 100; /* Adjusted aspect ratio if canvas size changed */
 }
-
 .adsr-knobs-container {
     display: flex;
-    justify-content: space-around; /* Distribute knobs evenly */
-    align-items: flex-start; /* Align items at the top */
+    justify-content: space-around; 
+    align-items: flex-start; 
     width: 100%;
-    gap: 10px; /* Gap between knob controls */
-    padding: 10px 0;
+    gap: 3px; /* Further reduced gap for 5 knobs */
+    padding: 5px 0; /* Reduced padding */
+    flex-wrap: wrap; 
 }
-
 .knob-control {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    min-width: 45px; /* Ensure some base width for each knob unit */
+    min-width: 38px; /* Adjusted for 5 knobs */
+    flex-grow: 1; 
+    flex-basis: 18%; /* Aim for 5 across */
 }
-
 .knob-label-top {
-    font-size: 0.8em;
+    font-size: 0.75em; /* Smaller label */
     color: #555;
-    margin-bottom: 5px;
+    margin-bottom: 3px; /* Reduced margin */
     font-weight: 500;
+    white-space: nowrap; /* Prevent wrapping */
 }
-
 input[type="range"].adsr-knob {
-    -webkit-appearance: slider-vertical; /* For WebKit/Blink */
-    appearance: slider-vertical; /* Standard (less supported) */
-    writing-mode: bt-lr; /* Fallback for some browsers */
-    width: 20px; /* Width of the vertical slider's track area */
-    height: 100px; /* Length of the vertical slider */
+    -webkit-appearance: slider-vertical;
+    appearance: slider-vertical;
+    writing-mode: bt-lr; 
+    width: 18px; /* Thinner track */
+    height: 75px; /* Shorter knobs */
     padding: 0;
-    margin: 5px 0; /* Space around the slider itself */
+    margin: 3px 0; 
     cursor: ns-resize;
 }
-/* For browsers that don't support appearance: slider-vertical or writing-mode well, */
-/* we might need to use transform. This makes layout tricky. */
-/* As a simpler fallback, they will appear as short horizontal sliders. */
-
 .knob-value {
-    font-size: 0.8em;
+    font-size: 0.75em; /* Smaller value */
     color: #007bff;
-    margin-top: 5px;
+    margin-top: 3px; /* Reduced margin */
     background-color: #e9ecef;
-    padding: 1px 4px;
+    padding: 1px 3px;
     border-radius: 3px;
-    min-width: 25px;
+    min-width: 22px;
     display: inline-block;
 }
 
@@ -603,11 +623,12 @@ input[type="range"].adsr-knob {
     }
     .chord-context-display { display: none; }
     .adsr-knobs-container {
-        flex-wrap: wrap; /* Allow knobs to wrap on smaller screens if needed */
+        flex-wrap: wrap;
         justify-content: center;
+        gap: 8px;
     }
     .knob-control {
-        flex-basis: 45%; /* Two knobs per row */
+        flex-basis: calc(33.33% - 10px); /* Try for 3 knobs per row */
         margin-bottom: 10px;
     }
     .keyboard-section { padding: 10px 15px; }
@@ -629,7 +650,9 @@ input[type="range"].adsr-knob {
     label > span { display: inline-block; margin-top: 3px; margin-left: 0; }
     .piano-keyboard-container { height: 80px; }
     .adsr-canvas-container { max-width: 200px; margin-bottom:10px;}
-
+    .knob-control { 
+        flex-basis: calc(50% - 8px); /* Two knobs per row */
+    }
 }
 
 @media (max-width: 420px) {
@@ -643,11 +666,11 @@ input[type="range"].adsr-knob {
     .beat-indicator { width: 13px; height: 13px; gap: 4px;}
     .piano-keyboard-container { height: 70px; }
     .knob-control {
-        min-width: 40px; /* Adjust for very small screens */
+        min-width: 35px; 
+        flex-basis: calc(50% - 5px);
     }
     input[type="range"].adsr-knob {
-        height: 80px; /* Shorter knobs on very small screens */
+        height: 65px; /* Even shorter */
     }
-    .adsr-canvas-container { max-width: 180px;}
-
+    .adsr-canvas-container { max-width: 150px;}
 }

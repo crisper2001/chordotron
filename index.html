@@ -102,52 +102,58 @@
                             </select>
                         </div>
 
-                        <div class="control-group adsr-group">
-                            <h3>📈 ADSR & Synth Gain</h3>
-                            <div class="adsr-canvas-container">
-                                <canvas id="adsrCanvas" width="220" height="120"></canvas>
+                        <div class="control-group synth-controls-group">
+                            <h3>🎹 Synth</h3>
+                            <div class="oscillator-control-inline"> <!-- New wrapper for inline layout -->
+                                <label for="oscillatorType">Oscillator:</label>
+                                <select id="oscillatorType">
+                                    <option value="sine">Sine</option>
+                                    <option value="square">Square</option>
+                                    <option value="sawtooth">Sawtooth</option>
+                                    <option value="triangle" selected>Triangle</option>
+                                </select>
                             </div>
-                            <div class="adsr-knobs-container">
-                                <div class="knob-control">
-                                    <label for="attack" class="knob-label-top">Attack</label>
-                                    <input type="range" id="attack" class="adsr-knob" value="0.05" min="0.01" max="2" step="0.01" orient="vertical">
-                                    <span id="attackValue" class="knob-value">0.05</span>
+                            
+                            <div class="adsr-section">
+                                <label class="section-sub-label">Envelope (ADSR) & Gain:</label> <!-- Added Gain here -->
+                                <div class="adsr-canvas-container">
+                                    <canvas id="adsrCanvas" width="200" height="100"></canvas> <!-- Slightly smaller canvas -->
                                 </div>
-                                <div class="knob-control">
-                                    <label for="decay" class="knob-label-top">Decay</label>
-                                    <input type="range" id="decay" class="adsr-knob" value="0.1" min="0.01" max="2" step="0.01" orient="vertical">
-                                    <span id="decayValue" class="knob-value">0.1</span>
-                                </div>
-                                <div class="knob-control">
-                                    <label for="sustain" class="knob-label-top">Sustain</label>
-                                    <input type="range" id="sustain" class="adsr-knob" value="0.7" min="0" max="1" step="0.01" orient="vertical">
-                                    <span id="sustainValue" class="knob-value">0.7</span>
-                                </div>
-                                <div class="knob-control">
-                                    <label for="release" class="knob-label-top">Release</label>
-                                    <input type="range" id="release" class="adsr-knob" value="0.3" min="0.01" max="3" step="0.01" orient="vertical">
-                                    <span id="releaseValue" class="knob-value">0.3</span>
-                                </div>
-                                <div class="knob-control">
-                                    <label for="synthGain" class="knob-label-top">Gain</label> <!-- Changed label -->
-                                    <input type="range" id="synthGain" class="adsr-knob" value="0.5" min="0" max="1" step="0.01" orient="vertical">
-                                    <span id="synthGainValue" class="knob-value">0.5</span>
+                                <div class="adsr-knobs-container">
+                                    <div class="knob-control">
+                                        <label for="attack" class="knob-label-top">Attack</label>
+                                        <input type="range" id="attack" class="adsr-knob" value="0.05" min="0.01" max="2" step="0.01" orient="vertical">
+                                        <span id="attackValue" class="knob-value">0.05</span>
+                                    </div>
+                                    <div class="knob-control">
+                                        <label for="decay" class="knob-label-top">Decay</label>
+                                        <input type="range" id="decay" class="adsr-knob" value="0.1" min="0.01" max="2" step="0.01" orient="vertical">
+                                        <span id="decayValue" class="knob-value">0.1</span>
+                                    </div>
+                                    <div class="knob-control">
+                                        <label for="sustain" class="knob-label-top">Sustain</label>
+                                        <input type="range" id="sustain" class="adsr-knob" value="0.7" min="0" max="1" step="0.01" orient="vertical">
+                                        <span id="sustainValue" class="knob-value">0.7</span>
+                                    </div>
+                                    <div class="knob-control">
+                                        <label for="release" class="knob-label-top">Release</label>
+                                        <input type="range" id="release" class="adsr-knob" value="0.3" min="0.01" max="3" step="0.01" orient="vertical">
+                                        <span id="releaseValue" class="knob-value">0.3</span>
+                                    </div>
+                                    <div class="knob-control">
+                                        <label for="synthGain" class="knob-label-top">Gain</label>
+                                        <input type="range" id="synthGain" class="adsr-knob" value="0.5" min="0" max="1" step="0.01" orient="vertical">
+                                        <span id="synthGainValue" class="knob-value">0.5</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="control-group sound-options-group">
-                            <h3>🔊 Sound & Master</h3>
+
+                        <div class="control-group sound-options-group"> 
+                            <h3>🔊 Master & Metronome</h3>
                             <label for="masterGain">Master Gain: <span id="masterGainValue">0.5</span></label>
                             <input type="range" id="masterGain" value="0.5" min="0" max="1" step="0.01">
-
-                            <label for="oscillatorType">Oscillator (Chords):</label>
-                            <select id="oscillatorType">
-                                <option value="sine">Sine</option>
-                                <option value="square">Square</option>
-                                <option value="sawtooth">Sawtooth</option>
-                                <option value="triangle" selected>Triangle</option>
-                            </select>
 
                             <label for="metronomeVolume">Metronome Vol Adj: <span id="metronomeVolumeValue">0.8</span></label>
                             <input type="range" id="metronomeVolume" value="0.8" min="0" max="1" step="0.01">
