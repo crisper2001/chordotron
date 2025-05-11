@@ -44,3 +44,6 @@ export const currentRangeDisplaySpan = document.getElementById('currentRangeDisp
 
 // Piano Keyboard Element
 export const pianoKeyboardContainer = document.getElementById('pianoKeyboardContainer');
+
+// ADSR Visualizer Canvas <<< ADDED
+export const adsrCanvas = document.getElementById('adsrCanvas');

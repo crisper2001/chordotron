@@ -3,6 +3,7 @@ import * as Constants from './constants.js';
 import * as AppState from './state.js';
 import { stopPlayback } from './playback-scheduler.js';
 import * as MusicTheory from './music-theory.js';
+import * as ADSRVisualizer from './adsr-visualizer.js'; // <<< ADDED
 
 function clearInputErrorStates() {
     // Not currently used for sliders
@@ -26,6 +27,8 @@ export function setupSliderListeners() {
     sliders.forEach(({el, span, isFloat}) => {
         if (!el) return; 
         if (span) span.textContent = parseFloat(el.value).toFixed(isFloat ? 2 : 0);
+        // The main 'input' listener for ADSR sliders is in main.js for visualization
+        // This one is just for the text span update
         el.addEventListener('input', (event) => {
             if (span) span.textContent = parseFloat(event.target.value).toFixed(isFloat ? 2 : 0);
         });
@@ -36,11 +39,15 @@ export function updatePitchRangeDisplay() {
     const startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
     
-    // The dynamic max of rangeStartNoteSlider is now handled in main.js updateKeyboardRangeFromSliders
-    // Here, we just read the current values and display them.
-    const endMidi = startMidi + length - 1;
+    const clampedStartMidi = Math.max(Constants.MIDI_C2, Math.min(startMidi, Constants.MIDI_C5));
+     if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi) ) { // Prevent infinite loop if value not actually changing due to type
+        DomElements.rangeStartNoteSlider.value = clampedStartMidi;
+    }
+    const finalStartMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    const endMidi = finalStartMidi + length - 1;
 
-    const startNoteName = MusicTheory.midiToNoteNameWithOctave(startMidi) || 'N/A';
+
+    const startNoteName = MusicTheory.midiToNoteNameWithOctave(finalStartMidi) || 'N/A';
     const endNoteName = MusicTheory.midiToNoteNameWithOctave(endMidi) || 'N/A';
 
     if (DomElements.rangeStartNoteValueSpan) DomElements.rangeStartNoteValueSpan.textContent = startNoteName;
@@ -162,22 +169,30 @@ export function applySettingsToUI(settings) {
     DomElements.rangeStartNoteSlider.value = settings.rangeStartMidi ?? Constants.DEFAULT_MIN_MIDI_RANGE_START;
     DomElements.rangeLengthSlider.value = settings.rangeLength ?? Constants.DEFAULT_RANGE_LENGTH;
     
-    // Set the max of rangeStartNoteSlider based on the loaded/default length
     const currentLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (currentLength - 1);
-    // Ensure the loaded start value isn't now out of this dynamic max
     if (parseInt(DomElements.rangeStartNoteSlider.value, 10) > parseInt(DomElements.rangeStartNoteSlider.max, 10) ) {
         DomElements.rangeStartNoteSlider.value = DomElements.rangeStartNoteSlider.max;
     }
 
-
-    updatePitchRangeDisplay(); // Update text displays for pitch range sliders
+    updatePitchRangeDisplay();
 
     const modeToSelect = settings.inputMode || "chords";
     document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
     DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
     DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
 
-    setupSliderListeners();
+    setupSliderListeners(); // Sets up general slider text spans
     updateBeatIndicatorsVisibility(getBeatsPerMeasure());
+
+    // Explicitly update ADSR visualizer after settings are applied
+    if (DomElements.adsrCanvas) { // Check if canvas exists
+        const adsrSettings = {
+            attack: parseFloat(DomElements.attackSlider.value),
+            decay: parseFloat(DomElements.decaySlider.value),
+            sustain: parseFloat(DomElements.sustainSlider.value),
+            release: parseFloat(DomElements.releaseSlider.value)
+        };
+        ADSRVisualizer.drawADSRGraph(adsrSettings);
+    }
 }
