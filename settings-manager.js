@@ -1,5 +1,7 @@
 import * as DomElements from './dom-elements.js';
-import { applySettingsToUI } from './ui-helpers.js'; 
+import { applySettingsToUI } from './ui-helpers.js';
+
+const AUTOSAVE_KEY = 'chordotronAutosaveData';
 
 export function collectCurrentSettings() {
     return {
@@ -38,6 +40,7 @@ async function saveWithPicker(settingsJSON, suggestedName) {
         await writable.write(settingsJSON);
         await writable.close();
         console.log('Settings saved successfully to:', handle.name);
+        autosaveCurrentSettings(); // Also update autosave after manual save
         return true;
     } catch (err) {
         if (err.name === 'AbortError') {
@@ -55,7 +58,7 @@ async function saveWithPicker(settingsJSON, suggestedName) {
 
 function saveWithPromptAndDownload(settingsJSON, defaultFileName) {
     let fileName = prompt("Enter a file name for your settings (e.g., mySongSettings):", defaultFileName);
-    if (fileName === null) return; 
+    if (fileName === null) return;
     if (fileName.trim() === "") fileName = defaultFileName;
     if (!fileName.toLowerCase().endsWith(".json")) fileName += ".json";
     fileName = fileName.replace(/[^a-z0-9._-\s]/gi, '_').replace(/\s+/g, '_');
@@ -70,10 +73,11 @@ function saveWithPromptAndDownload(settingsJSON, defaultFileName) {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     console.log('Settings downloaded as:', fileName);
+    autosaveCurrentSettings(); // Also update autosave after manual save
 }
 
-export async function saveSettings() {
-    const defaultFileName = "chordPlayerSettings.json";
+export async function saveSettingsToFile() {
+    const defaultFileName = "chordotronSettings.json";
     const currentSettings = collectCurrentSettings();
     const settingsJSON = JSON.stringify(currentSettings, null, 2);
 
@@ -88,17 +92,18 @@ export async function saveSettings() {
     }
 }
 
-export function loadSettings(event) {
+export function loadSettingsFromFile(event) {
     const file = event.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (e) => {
         try {
             const settings = JSON.parse(e.target.result);
-            applySettingsToUI(settings); 
+            applySettingsToUI(settings);
+            autosaveCurrentSettings(); // Autosave after loading from file
         } catch (error) {
-            console.error("Error loading settings:", error);
-            alert("Failed to load settings.");
+            console.error("Error loading settings from file:", error);
+            alert("Failed to load settings from file.");
         }
     };
     reader.onerror = (e) => {
@@ -106,5 +111,37 @@ export function loadSettings(event) {
         alert("Error reading file.");
     };
     reader.readAsText(file);
-    event.target.value = null; 
+    event.target.value = null;
+}
+
+export function autosaveCurrentSettings() {
+    try {
+        const currentSettings = collectCurrentSettings();
+        localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(currentSettings));
+    } catch (e) {
+        console.warn("Autosave failed. LocalStorage might be full or disabled.", e);
+    }
+}
+
+export function loadAutosavedSettings() {
+    try {
+        const savedSettingsJSON = localStorage.getItem(AUTOSAVE_KEY);
+        if (savedSettingsJSON) {
+            const savedSettings = JSON.parse(savedSettingsJSON);
+            applySettingsToUI(savedSettings);
+            return true; // Indicates settings were loaded
+        }
+    } catch (e) {
+        console.error("Error loading autosaved settings. Resetting to defaults.", e);
+        localStorage.removeItem(AUTOSAVE_KEY); // Clear corrupted data
+    }
+    return false; // Indicates no settings were loaded or an error occurred
+}
+
+export function clearAutosavedSettings() {
+    try {
+        localStorage.removeItem(AUTOSAVE_KEY);
+    } catch (e) {
+        console.warn("Failed to clear autosaved settings.", e);
+    }
 }
