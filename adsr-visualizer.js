@@ -5,7 +5,7 @@ let ctx = null;
 
 const PADDING = 20; 
 const AXIS_COLOR = '#888'; 
-const LINE_COLOR = '#007bff'; 
+const LINE_COLOR = '#3A7CA5';
 const GUIDE_COLOR = '#ddd'; 
 const TEXT_COLOR = '#555'; 
 

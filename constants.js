@@ -80,7 +80,7 @@ export const ROMAN_NUMERAL_MAP = {
 export const DISPLAY_SYMBOL_MAP = { 'o': '°', 'o7': '°7', 'oM7': '°M7', 'h7': 'ø' };
 
 export const defaultSettings = {
-    bpm: 120, attack: 0.05, decay: 0.1, sustain: 0.7, release: 0.3,
+    bpm: 120, attack: 0.01, decay: 0.1, sustain: 0.7, release: 0.01,
     timeSignature: "4/4", oscillatorType: "triangle",
     metronomeVolume: 0.8,
     loopToggle: false, metronomeAudioToggle: false,
