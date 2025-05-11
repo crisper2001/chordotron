@@ -189,7 +189,7 @@ input[type="radio"] {
 }
 
 input[type="checkbox"] { 
-    /* Checkbox for toggles is hidden via opacity */
+    /* Hidden for button-style toggles */
 }
 
 textarea { 
@@ -360,18 +360,72 @@ input[type="text"].input-error {
 .adsr-group {
     display: flex;
     flex-direction: column;
+    align-items: center; /* Center the knobs container */
 }
 .adsr-canvas-container {
     width: 100%;
-    margin-bottom: 10px;
+    max-width: 250px; /* Limit canvas width */
+    margin-bottom: 15px; /* More space for knobs */
     display: flex;
     justify-content: center;
 }
 #adsrCanvas {
     border: 1px solid #ccc;
     background-color: #f9f9f9;
-    max-width: 100%;
+    width: 100%; /* Make canvas responsive within its container */
+    height: auto; /* Maintain aspect ratio (or set fixed height) */
+    aspect-ratio: 220 / 120; /* Based on its HTML attributes */
 }
+
+.adsr-knobs-container {
+    display: flex;
+    justify-content: space-around; /* Distribute knobs evenly */
+    align-items: flex-start; /* Align items at the top */
+    width: 100%;
+    gap: 10px; /* Gap between knob controls */
+    padding: 10px 0;
+}
+
+.knob-control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 45px; /* Ensure some base width for each knob unit */
+}
+
+.knob-label-top {
+    font-size: 0.8em;
+    color: #555;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+input[type="range"].adsr-knob {
+    -webkit-appearance: slider-vertical; /* For WebKit/Blink */
+    appearance: slider-vertical; /* Standard (less supported) */
+    writing-mode: bt-lr; /* Fallback for some browsers */
+    width: 20px; /* Width of the vertical slider's track area */
+    height: 100px; /* Length of the vertical slider */
+    padding: 0;
+    margin: 5px 0; /* Space around the slider itself */
+    cursor: ns-resize;
+}
+/* For browsers that don't support appearance: slider-vertical or writing-mode well, */
+/* we might need to use transform. This makes layout tricky. */
+/* As a simpler fallback, they will appear as short horizontal sliders. */
+
+.knob-value {
+    font-size: 0.8em;
+    color: #007bff;
+    margin-top: 5px;
+    background-color: #e9ecef;
+    padding: 1px 4px;
+    border-radius: 3px;
+    min-width: 25px;
+    display: inline-block;
+}
+
 
 .piano-keyboard-container {
     position: relative; 
@@ -548,6 +602,14 @@ input[type="text"].input-error {
         width: 100%;
     }
     .chord-context-display { display: none; }
+    .adsr-knobs-container {
+        flex-wrap: wrap; /* Allow knobs to wrap on smaller screens if needed */
+        justify-content: center;
+    }
+    .knob-control {
+        flex-basis: 45%; /* Two knobs per row */
+        margin-bottom: 10px;
+    }
     .keyboard-section { padding: 10px 15px; }
     .piano-keyboard-container { height: 90px; }
 }
@@ -566,6 +628,8 @@ input[type="text"].input-error {
     textarea { min-height: 70px; }
     label > span { display: inline-block; margin-top: 3px; margin-left: 0; }
     .piano-keyboard-container { height: 80px; }
+    .adsr-canvas-container { max-width: 200px; margin-bottom:10px;}
+
 }
 
 @media (max-width: 420px) {
@@ -578,4 +642,12 @@ input[type="text"].input-error {
     #currentChordDisplay { font-size: 1.0em; }
     .beat-indicator { width: 13px; height: 13px; gap: 4px;}
     .piano-keyboard-container { height: 70px; }
+    .knob-control {
+        min-width: 40px; /* Adjust for very small screens */
+    }
+    input[type="range"].adsr-knob {
+        height: 80px; /* Shorter knobs on very small screens */
+    }
+    .adsr-canvas-container { max-width: 180px;}
+
 }

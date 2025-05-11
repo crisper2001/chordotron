@@ -19,7 +19,9 @@ export function collectCurrentSettings() {
         songKey: DomElements.songKeySelect.value,
         keyMode: DomElements.keyModeSelect.value,
         rangeStartMidi: parseInt(DomElements.rangeStartNoteSlider.value, 10),
-        rangeLength: parseInt(DomElements.rangeLengthSlider.value, 10)
+        rangeLength: parseInt(DomElements.rangeLengthSlider.value, 10),
+        masterGain: parseFloat(DomElements.masterGainSlider.value),
+        synthGain: parseFloat(DomElements.synthGainSlider.value) // <<< ADDED
     };
 }
 

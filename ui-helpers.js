@@ -18,11 +18,9 @@ export function setControlsDisabled(disabled) {
 export function setupSliderListeners() {
     const sliders = [
         { el: DomElements.bpmSlider, span: DomElements.bpmValueSpan, isFloat: false },
-        { el: DomElements.attackSlider, span: DomElements.attackValueSpan, isFloat: true },
-        { el: DomElements.decaySlider, span: DomElements.decayValueSpan, isFloat: true },
-        { el: DomElements.sustainSlider, span: DomElements.sustainValueSpan, isFloat: true },
-        { el: DomElements.releaseSlider, span: DomElements.releaseValueSpan, isFloat: true },
         { el: DomElements.metronomeVolumeSlider, span: DomElements.metronomeVolumeValueSpan, isFloat: true },
+        { el: DomElements.masterGainSlider, span: DomElements.masterGainValueSpan, isFloat: true },
+        // ADSR and Synth Gain knob text spans are updated directly in updateADSRVisualizerFromSliders or applySettingsToUI
     ];
     sliders.forEach(({el, span, isFloat}) => {
         if (!el) return; 
@@ -113,33 +111,39 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
     const currentChordObject = chordsArray[currentIndex];
     if (currentChordObject) {
         const displayCurrent = formatChordForDisplay(currentChordObject.name);
-        DomElements.currentChordDisplay.innerHTML = `🎶 Playing: ${displayCurrent}`; // Use innerHTML
+        DomElements.currentChordDisplay.innerHTML = `🎶 Playing: ${displayCurrent}`;
     } else {
-        DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --"; // Use innerHTML
+        DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
     }
 
     if (currentIndex > 0 && chordsArray[currentIndex - 1]) {
         const prevChordObject = chordsArray[currentIndex - 1];
         const displayPrev = formatChordForDisplay(prevChordObject.name);
-        DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${displayPrev}`; // Use innerHTML
+        DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${displayPrev}`;
     } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
         const prevChordObject = chordsArray[chordsArray.length - 1];
         const displayPrev = formatChordForDisplay(prevChordObject.name);
-        DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${displayPrev}`; // Use innerHTML
+        DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${displayPrev}`;
     } else {
-        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --"; // Use innerHTML
+        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
     }
 
     if (currentIndex < chordsArray.length - 1 && chordsArray[currentIndex + 1]) {
         const nextChordObject = chordsArray[currentIndex + 1];
         const displayNext = formatChordForDisplay(nextChordObject.name);
-        DomElements.nextChordDisplay.innerHTML = `Next: ${displayNext} ⏭️`; // Use innerHTML
+        DomElements.nextChordDisplay.innerHTML = `Next: ${displayNext} ⏭️`;
     } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
         const nextChordObject = chordsArray[0];
         const displayNext = formatChordForDisplay(nextChordObject.name);
-        DomElements.nextChordDisplay.innerHTML = `Next: ${displayNext} ⏭️`; // Use innerHTML
+        DomElements.nextChordDisplay.innerHTML = `Next: ${displayNext} ⏭️`;
     } else {
-        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --"; // Use innerHTML
+        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+    }
+}
+
+function updateKnobValueSpan(sliderElement, spanElement) {
+    if (sliderElement && spanElement) {
+        spanElement.textContent = parseFloat(sliderElement.value).toFixed(2);
     }
 }
 
@@ -156,6 +160,8 @@ export function applySettingsToUI(settings) {
     DomElements.timeSignatureSelect.value = settings.timeSignature;
     DomElements.oscillatorTypeEl.value = settings.oscillatorType;
     DomElements.metronomeVolumeSlider.value = settings.metronomeVolume;
+    DomElements.masterGainSlider.value = settings.masterGain ?? 0.5;
+    DomElements.synthGainSlider.value = settings.synthGain ?? 0.5;
     DomElements.loopToggle.checked = settings.loopToggle;
     DomElements.metronomeAudioToggle.checked = settings.metronomeAudioToggle;
     DomElements.chordInputEl.value = settings.chordInput;
@@ -179,7 +185,15 @@ export function applySettingsToUI(settings) {
     DomElements.chordNameInputArea.style.display = modeToSelect === 'chords' ? 'block' : 'none';
     DomElements.scaleDegreeInputArea.style.display = modeToSelect === 'degrees' ? 'block' : 'none';
 
-    setupSliderListeners();
+    setupSliderListeners(); // Sets up general slider text spans
+    
+    // Manually update ADSR and Synth Gain knob value spans
+    updateKnobValueSpan(DomElements.attackSlider, DomElements.attackValueSpan);
+    updateKnobValueSpan(DomElements.decaySlider, DomElements.decayValueSpan);
+    updateKnobValueSpan(DomElements.sustainSlider, DomElements.sustainValueSpan);
+    updateKnobValueSpan(DomElements.releaseSlider, DomElements.releaseValueSpan);
+    updateKnobValueSpan(DomElements.synthGainSlider, DomElements.synthGainValueSpan);
+
     updateBeatIndicatorsVisibility(getBeatsPerMeasure());
 
     if (DomElements.adsrCanvas) { 
@@ -189,10 +203,10 @@ export function applySettingsToUI(settings) {
             sustain: parseFloat(DomElements.sustainSlider.value),
             release: parseFloat(DomElements.releaseSlider.value)
         };
-        ADSRVisualizer.drawADSRGraph(adsrSettings);
+        const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
+        ADSRVisualizer.drawADSRGraph(adsrSettings, currentSynthGain);
     }
 
-    // Update initial chord display text after settings applied
     if (!AppState.sequencePlaying) {
         DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
         DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";

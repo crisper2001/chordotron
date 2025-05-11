@@ -12,7 +12,9 @@ function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
     const adsrTick = { attack: 0.005, decay: 0.03, sustain: 0.1, release: 0.06 };
     const frequency = isDownbeat ? 1200 : 1000;
-    const volume = parseFloat(DomElements.metronomeVolumeSlider.value);
+    const metronomeVolumeAdjustment = parseFloat(DomElements.metronomeVolumeSlider.value);
+    const masterGain = parseFloat(DomElements.masterGainSlider.value);
+    const finalMetronomeGain = metronomeVolumeAdjustment * masterGain; // Metronome volume is now also affected by master gain
     
     const beatsPerMeasure = UIHelpers.getBeatsPerMeasure();
     const visualBeatIndex = AppState.currentBeatInSequenceForVisualMetronome % beatsPerMeasure;
@@ -32,13 +34,14 @@ function createMetronomeTick(time, isDownbeat) {
     }, Math.max(0, visualChangeTime));
 
 
-    if (DomElements.metronomeAudioToggle.checked && volume > 0) {
-        AudioCore.playFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', volume);
+    if (DomElements.metronomeAudioToggle.checked && finalMetronomeGain > 0) {
+        AudioCore.playFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain);
     }
     AppState.setCurrentBeatInSequenceForVisualMetronome(AppState.currentBeatInSequenceForVisualMetronome + 1);
 }
 
-function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature) {
+// combinedSynthAndMasterGain is pre-calculated (synthGain * masterGain)
+function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature, combinedSynthAndMasterGain) {
     const quarterNoteDuration = 60 / bpm;
     const timeSigBeatFactor = UIHelpers.getBeatDurationFactorForTimeSignature(timeSignature);
     const actualSingleBeatDuration = quarterNoteDuration * timeSigBeatFactor;
@@ -47,7 +50,7 @@ function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorTy
     const frequencies = chordObject.frequencies;
 
     if (frequencies && frequencies.length > 0) {
-        AudioCore.playFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType);
+        AudioCore.playFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, combinedSynthAndMasterGain);
     }
     
     const displayDelay = (scheduleTime - AppState.audioCtx.currentTime) * 1000;
@@ -95,6 +98,10 @@ function scheduleNextEvent(isSelectionPlayback) {
     const currentBPM = parseFloat(DomElements.bpmSlider.value);
     const currentOscillatorType = DomElements.oscillatorTypeEl.value;
     const currentTimeSignature = DomElements.timeSignatureSelect.value;
+    const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
+    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); // Get synth gain
+    const combinedGainForChord = currentSynthGain * currentMasterGain; // Pre-calculate combined gain
+
     const currentADSR = {
         attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
         decay: Math.max(0.01, parseFloat(DomElements.decaySlider.value)),
@@ -117,7 +124,8 @@ function scheduleNextEvent(isSelectionPlayback) {
         chordToPlay, currentBPM, currentADSR, chordStartTime,
         currentOscillatorType,
         AppState.currentChordIndex, AppState.originalChords,
-        currentTimeSignature
+        currentTimeSignature,
+        combinedGainForChord // Pass the pre-calculated combined gain
     );
 
     AppState.setNextEventTime(AppState.nextEventTime + durationOfThisChordSlot);
@@ -191,13 +199,13 @@ export function startPlayback() {
     AppState.setOriginalChords(finalChords);
 
     if (AppState.originalChords.length === 0 || AppState.originalChords.every(c => !c.frequencies || c.frequencies.length === 0) ) {
-        DomElements.currentChordDisplay.innerHTML = "🎶 No valid chords to play."; // Updated
+        DomElements.currentChordDisplay.innerHTML = "🎶 No valid chords to play.";
         KeyboardUI.clearKeyboardHighlights();
         return;
     }
     
     AppState.setSequencePlaying(true);
-    DomElements.playStopButton.innerHTML = "⏹️ Stop"; // Use innerHTML for emoji
+    DomElements.playStopButton.innerHTML = "⏹️ Stop";
     DomElements.playStopButton.classList.add('playing');
     UIHelpers.setControlsDisabled(true);
     
@@ -206,9 +214,9 @@ export function startPlayback() {
     const beatsPerMeasureForVisuals = UIHelpers.getBeatsPerMeasure();
     UIHelpers.updateBeatIndicatorsVisibility(beatsPerMeasureForVisuals);
 
-    DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --"; // Updated
-    DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --"; // Updated
-    DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --"; // Updated
+    DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
+    DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+    DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
     KeyboardUI.clearKeyboardHighlights();
 
     AppState.setNextEventTime(AppState.audioCtx.currentTime + 0.1); 
@@ -234,13 +242,13 @@ export function stopPlayback(clearDisplay = true) {
     AppState.setActiveOscillators([]);
 
     if (clearDisplay) {
-        DomElements.currentChordDisplay.innerHTML = "🎶 Stopped."; // Updated
-        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --"; // Updated
-        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --"; // Updated
+        DomElements.currentChordDisplay.innerHTML = "🎶 Stopped.";
+        DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
+        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
         KeyboardUI.clearKeyboardHighlights(); 
     }
-    DomElements.playStopButton.innerHTML = "▶️ Play"; // Use innerHTML for emoji
+    DomElements.playStopButton.innerHTML = "▶️ Play";
     DomElements.playStopButton.classList.remove('playing');
     UIHelpers.setControlsDisabled(false);
 }

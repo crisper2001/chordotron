@@ -23,7 +23,7 @@ export const releaseValueSpan = document.getElementById('releaseValue');
 export const oscillatorTypeEl = document.getElementById('oscillatorType');
 export const loopToggle = document.getElementById('loopToggle');
 export const metronomeAudioToggle = document.getElementById('metronomeAudioToggle');
-export const metronomeVolumeSlider = document.getElementById('metronomeVolume');
+export const metronomeVolumeSlider = document.getElementById('metronomeVolume'); // This is now "Metronome Vol Adj"
 export const metronomeVolumeValueSpan = document.getElementById('metronomeVolumeValue');
 export const playStopButton = document.getElementById('playStopButton');
 export const currentChordDisplay = document.getElementById('currentChordDisplay');
@@ -45,5 +45,13 @@ export const currentRangeDisplaySpan = document.getElementById('currentRangeDisp
 // Piano Keyboard Element
 export const pianoKeyboardContainer = document.getElementById('pianoKeyboardContainer');
 
-// ADSR Visualizer Canvas <<< ADDED
+// ADSR Visualizer Canvas
 export const adsrCanvas = document.getElementById('adsrCanvas');
+
+// Master Gain
+export const masterGainSlider = document.getElementById('masterGain');
+export const masterGainValueSpan = document.getElementById('masterGainValue');
+
+// Synth Gain (within ADSR group) <<< ADDED
+export const synthGainSlider = document.getElementById('synthGain');
+export const synthGainValueSpan = document.getElementById('synthGainValue');
