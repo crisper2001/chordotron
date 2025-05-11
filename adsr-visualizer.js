@@ -3,17 +3,13 @@ import * as DomElements from './dom-elements.js';
 let canvas = null;
 let ctx = null;
 
-const PADDING = 25; // Padding around the graph
-const LABEL_OFFSET = 5;
-const AXIS_COLOR = '#666';
-const LINE_COLOR = '#ff8c00'; // Orange, similar to the image
-const GUIDE_COLOR = '#ccc';
-const TEXT_COLOR = '#333';
-const KEY_EVENT_COLOR = '#555';
+const PADDING = 20; // Reduced padding slightly for more graph space
+const AXIS_COLOR = '#888'; // Lighter axis
+const LINE_COLOR = '#007bff'; 
+const GUIDE_COLOR = '#ddd'; // Lighter guides
+const TEXT_COLOR = '#555'; // Slightly lighter text
 
-// A representative duration for the "note held" part in the visualizer
-// This is not the actual noteHeldDuration from playback, but for visual consistency.
-const VISUAL_NOTE_HELD_DURATION_PLOT = 1.0; // seconds
+const VISUAL_NOTE_HELD_DURATION_PLOT = 1.0; 
 
 function clearCanvas() {
     if (!ctx || !canvas) return;
@@ -27,21 +23,18 @@ function drawAxes() {
     ctx.font = '10px Arial';
     ctx.fillStyle = TEXT_COLOR;
 
-    // Y-axis (Value)
+    // Y-axis (Value) - No text labels for 1.0 / 0.0
     ctx.beginPath();
     ctx.moveTo(PADDING, PADDING);
     ctx.lineTo(PADDING, canvas.height - PADDING);
     ctx.stroke();
-    ctx.fillText('Gain', PADDING - LABEL_OFFSET - 15, PADDING - LABEL_OFFSET - 5);
-    ctx.fillText('1.0', PADDING - LABEL_OFFSET - 18, PADDING + 5); // Peak
-    ctx.fillText('0.0', PADDING - LABEL_OFFSET - 18, canvas.height - PADDING);
+    // ctx.fillText('Gain', PADDING - 18, PADDING - 10); // Removed "Gain"
 
-    // X-axis (Time)
+    // X-axis (Time) - No "Time" label
     ctx.beginPath();
     ctx.moveTo(PADDING, canvas.height - PADDING);
     ctx.lineTo(canvas.width - PADDING, canvas.height - PADDING);
     ctx.stroke();
-    ctx.fillText('Time', canvas.width - PADDING - 15, canvas.height - PADDING + LABEL_OFFSET + 10);
 }
 
 export function drawADSRGraph(adsrSettings) {
@@ -54,93 +47,72 @@ export function drawADSRGraph(adsrSettings) {
     const graphWidth = canvas.width - 2 * PADDING;
     const graphHeight = canvas.height - 2 * PADDING;
 
-    // Max values for scaling (time axis is tricky due to variable components)
-    // We'll scale time based on total duration of the envelope for this plot
     const totalPlotTime = attack + decay + VISUAL_NOTE_HELD_DURATION_PLOT + release;
-    const peakGain = 1.0; // Normalized peak gain for visualization
+    const peakGain = 1.0; 
 
-    if (totalPlotTime <= 0) return; // Avoid division by zero
+    if (totalPlotTime <= 0) return; 
 
     const timeScale = graphWidth / totalPlotTime;
     const gainScale = graphHeight / peakGain;
 
-    // Helper to convert graph coordinates to canvas coordinates
     const toCanvasX = (time) => PADDING + time * timeScale;
-    const toCanvasY = (gain) => PADDING + graphHeight - (gain * gainScale); // Invert Y
+    const toCanvasY = (gain) => PADDING + graphHeight - (gain * gainScale);
 
     ctx.strokeStyle = LINE_COLOR;
     ctx.lineWidth = 2;
     ctx.beginPath();
 
-    // 1. Start
     ctx.moveTo(toCanvasX(0), toCanvasY(0));
 
-    // 2. Attack Phase
     const attackEndTime = attack;
     ctx.lineTo(toCanvasX(attackEndTime), toCanvasY(peakGain));
 
-    // 3. Decay Phase
     const decayEndTime = attackEndTime + decay;
     const sustainLevelGain = peakGain * sustain;
     ctx.lineTo(toCanvasX(decayEndTime), toCanvasY(sustainLevelGain));
 
-    // 4. Sustain Phase (for visualization)
     const sustainPlotEndTime = decayEndTime + VISUAL_NOTE_HELD_DURATION_PLOT;
     ctx.lineTo(toCanvasX(sustainPlotEndTime), toCanvasY(sustainLevelGain));
 
-    // 5. Release Phase
     const releaseEndTime = sustainPlotEndTime + release;
     ctx.lineTo(toCanvasX(releaseEndTime), toCanvasY(0));
     
     ctx.stroke();
 
-    // Draw vertical guides and labels
+    // Draw vertical guides and phase labels (simplified)
     ctx.strokeStyle = GUIDE_COLOR;
-    ctx.lineWidth = 0.5;
-    ctx.setLineDash([2, 2]);
-    ctx.font = '9px Arial';
+    ctx.lineWidth = 1; // Make guides slightly more prominent than 0.5
+    ctx.setLineDash([2, 3]); // Slightly different dash
+    ctx.font = '10px Arial'; // Slightly larger font for phase names
     ctx.fillStyle = TEXT_COLOR;
+    ctx.textAlign = 'center'; // Center the phase names
 
-    const drawGuide = (time, label, keyEvent = null, keyEventLabel = null) => {
-        const x = toCanvasX(time);
-        ctx.beginPath();
-        ctx.moveTo(x, PADDING);
-        ctx.lineTo(x, canvas.height - PADDING);
-        ctx.stroke();
-        ctx.fillText(label, x + 3, PADDING - 3);
+    const drawPhaseLabel = (startTime, endTime, label) => {
+        if (endTime - startTime < 0.001 && !(label === "Sustain" && VISUAL_NOTE_HELD_DURATION_PLOT > 0.01) ) return; // Don't draw label for zero-length phases unless it's sustain
+        
+        const midTime = startTime + (endTime - startTime) / 2;
+        const x = toCanvasX(midTime);
+        const y = canvas.height - PADDING + 12; // Position below the x-axis
 
-        if (keyEvent) {
-            ctx.fillStyle = KEY_EVENT_COLOR;
-            ctx.fillText(keyEventLabel, x - (ctx.measureText(keyEventLabel).width /2) , PADDING - 15);
-            // Draw arrow
+        // Draw a small vertical line from x-axis down to where text starts
+        const guideStartY = canvas.height - PADDING;
+        const guideEndY = y - 8; 
+        if (label) { // Only draw guide if there's a label
             ctx.beginPath();
-            if (keyEvent === 'on') {
-                ctx.moveTo(x, PADDING - 12);
-                ctx.lineTo(x, PADDING - 5);
-                ctx.moveTo(x-3, PADDING - 8);
-                ctx.lineTo(x, PADDING - 5);
-                ctx.lineTo(x+3, PADDING - 8);
-
-            } else { // off
-                ctx.moveTo(x, PADDING - 5);
-                ctx.lineTo(x, PADDING - 12);
-                ctx.moveTo(x-3, PADDING - 9);
-                ctx.lineTo(x, PADDING - 12);
-                ctx.lineTo(x+3, PADDING - 9);
-            }
+            ctx.moveTo(x, guideStartY);
+            ctx.lineTo(x, guideEndY);
             ctx.stroke();
-            ctx.fillStyle = TEXT_COLOR; // Reset fillStyle
+            ctx.fillText(label, x, y);
         }
     };
     
-    drawGuide(0, "", 'on', 'Key On');
-    if (attack > 0.01) drawGuide(attackEndTime, "Attack");
-    if (decay > 0.01) drawGuide(decayEndTime, "Decay");
-    drawGuide(sustainPlotEndTime, "Sustain", 'off', 'Key Off');
-    if (release > 0.01) drawGuide(releaseEndTime, "Release");
-
-
-    ctx.setLineDash([]); // Reset line dash
+    drawPhaseLabel(0, attackEndTime, "A");
+    drawPhaseLabel(attackEndTime, decayEndTime, "D");
+    drawPhaseLabel(decayEndTime, sustainPlotEndTime, "S");
+    drawPhaseLabel(sustainPlotEndTime, releaseEndTime, "R");
+    
+    ctx.textAlign = 'start'; // Reset alignment
+    ctx.setLineDash([]); 
 }
 
 
@@ -152,7 +124,6 @@ export function initADSRVisualizer() {
     }
     ctx = canvas.getContext('2d');
     
-    // Initial draw with default values (or values from sliders if already set)
     const initialADSR = {
         attack: parseFloat(DomElements.attackSlider.value),
         decay: parseFloat(DomElements.decaySlider.value),

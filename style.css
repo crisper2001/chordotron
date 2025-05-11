@@ -341,16 +341,21 @@ input[type="text"].input-error {
     display: flex;
     flex-direction: column;
 }
+
 .adsr-canvas-container {
     width: 100%;
-    margin-bottom: 10px;
+    /* height: 120px; */ /* Or set a fixed height for the container */
+    margin-bottom: 10px; 
     display: flex;
-    justify-content: center;
+    justify-content: center; 
 }
+
 #adsrCanvas {
     border: 1px solid #ccc;
     background-color: #f9f9f9;
-    max-width: 100%;
+    max-width: 100%; 
+    /* width: 100%; */ /* Make canvas fill the container width */
+    /* height: 100%; */ /* Make canvas fill the container height if container has fixed height */
 }
 
 .piano-keyboard-container {
