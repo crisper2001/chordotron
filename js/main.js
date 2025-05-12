@@ -70,7 +70,7 @@ document.addEventListener('keydown', (event) => {
             if (!AppState.activeLiveKeys.has(event.key)) {
                 
                 AppState.activeLiveKeys.forEach(existingKey => {
-                     AudioCore.stopLiveFrequencies(existingKey, 0.01); 
+                     AudioCore.stopLiveFrequencies(existingKey); 
                 });
                 AppState.activeLiveKeys.clear();
 
