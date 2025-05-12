@@ -233,7 +233,7 @@ export function startPlayback() {
     }
     
     AppState.setSequencePlaying(true);
-    DomElements.playStopButton.innerHTML = "⏹️ Stop (P)";
+    DomElements.playStopButton.innerHTML = "⏹️ Stop";
     DomElements.playStopButton.classList.add('playing');
     UIHelpers.setControlsDisabled(true);
     
@@ -283,7 +283,7 @@ export function stopPlayback(clearDisplay = true) {
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
         KeyboardUI.clearKeyboardHighlights(); 
     }
-    DomElements.playStopButton.innerHTML = "▶️ Play (P)";
+    DomElements.playStopButton.innerHTML = "▶️ Play";
     DomElements.playStopButton.classList.remove('playing');
     UIHelpers.setControlsDisabled(false);
 }

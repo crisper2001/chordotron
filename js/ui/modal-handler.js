@@ -1,6 +1,6 @@
 import * as DomElements from '../dom/dom-elements.js';
 
-const HELP_MODAL_SHOWN_KEY = 'chordotronHelpShown_v3';
+const HELP_MODAL_SHOWN_KEY = 'chordotronHelpShown_v4';
 
 function openHelpModal() {
     if (DomElements.helpModalOverlay) {

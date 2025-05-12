@@ -86,12 +86,13 @@ document.addEventListener('keydown', (event) => {
         return; 
     }
 
-    switch (event.key.toLowerCase()) {
-        case 'p':
+    switch (event.key) {
+        case ' ': 
             event.preventDefault();
             DomElements.playStopButton.click();
             break;
         case 'l':
+        case 'L':
             event.preventDefault();
             if (DomElements.loopToggle) {
                 DomElements.loopToggle.checked = !DomElements.loopToggle.checked;
@@ -99,6 +100,7 @@ document.addEventListener('keydown', (event) => {
             }
             break;
         case 'm':
+        case 'M':
             event.preventDefault();
             if (DomElements.metronomeAudioToggle) {
                 DomElements.metronomeAudioToggle.checked = !DomElements.metronomeAudioToggle.checked;
