@@ -178,7 +178,7 @@ export function parseScaleDegreeString(degreeString, songKey, keyMode, defaultBe
 
 export function parseDirectChordString(chordString, defaultBeatsPerChord) {
     const tokens = chordString.trim().split(/\s+/); const parsedChords = [];
-    const chordRegex = /^([A-Ga-g][#b]?)([A-Za-z0-9#bø°+susmMdimaugincl^()]*)(?:\/([A-Ga-g][#b]?))?(?:\((\d+)\))?$/i;
+    const chordRegex = /^([A-Ga-g][#b]?)([A-Za-z0-9#bø°+susmMdimaugincl^()]*?)(?:\/([A-Ga-g][#b]?))?(?:\((\d+)\))?$/i;
     
     for (const token of tokens) {
         if (!token) continue; 
