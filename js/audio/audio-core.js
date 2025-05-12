@@ -7,6 +7,8 @@ function createSoundSource(freq, startTime, adsr, noteHeldDuration, oscillatorTy
     const oscillator = AppState.audioCtx.createOscillator();
     const gainNode = AppState.audioCtx.createGain();
 
+    gainNode.gain.setValueAtTime(0, AppState.audioCtx.currentTime);
+
     oscillator.type = oscillatorType;
     oscillator.frequency.setValueAtTime(freq, startTime);
 
