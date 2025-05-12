@@ -39,6 +39,7 @@ export const loadSettingsFile = document.getElementById('loadSettingsFile');
 export const loadSettingsButton = document.getElementById('loadSettingsButton');
 export const recordButton = document.getElementById('recordButton');
 export const downloadRecordingButton = document.getElementById('downloadRecordingButton');
+export const recordingDurationDisplay = document.getElementById('recordingDurationDisplay');
 
 
 export const rangeStartNoteSlider = document.getElementById('rangeStartNoteSlider');

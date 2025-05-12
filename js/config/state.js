@@ -15,6 +15,10 @@ export let nextEventTime = 0;
 export const livePlayingAudioNodes = {};
 export const activeLiveKeys = new Set();
 
+export let recordingStartTime = null;
+export let finalRecordingDuration = null;
+export let recordingDurationUpdaterId = null;
+
 export function setActiveOscillators(newOscillators) { activeOscillators = newOscillators; }
 export function setCurrentSchedulerTimeoutId(id) { currentSchedulerTimeoutId = id; }
 export function setSequencePlaying(playing) { sequencePlaying = playing; }
@@ -27,3 +31,6 @@ export function setAudioRecordStreamDestination(dest) { audioRecordStreamDestina
 export function setMediaRecorder(recorder) { mediaRecorder = recorder; }
 export function setRecordedAudioChunks(chunks) { recordedAudioChunks = chunks; }
 export function setIsRecording(recordingStatus) { isRecording = recordingStatus; }
+export function setRecordingStartTime(time) { recordingStartTime = time; }
+export function setFinalRecordingDuration(duration) { finalRecordingDuration = duration; }
+export function setRecordingDurationUpdaterId(id) { recordingDurationUpdaterId = id; }

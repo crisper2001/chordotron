@@ -211,7 +211,13 @@ function playLiveChord(chordString, keyIdentifier) {
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new song and reset all settings to their defaults? This will also clear your autosaved project.")) {
         if (AppState.isRecording) stopAudioRecording();
+        
         SettingsManager.clearAutosavedSettings();
+        AppState.setRecordedAudioChunks([]);
+        AppState.setFinalRecordingDuration(null);
+        AppState.setRecordingStartTime(null);
+
+
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
         updateKeyboardRangeFromSliders();
         updateADSRVisualizerFromSliders();
@@ -224,6 +230,11 @@ DomElements.saveSettingsButton.addEventListener('click', SettingsManager.saveSet
 DomElements.loadSettingsButton.addEventListener('click', () => DomElements.loadSettingsFile.click());
 DomElements.loadSettingsFile.addEventListener('change', (event) => {
     if (AppState.isRecording) stopAudioRecording();
+
+    AppState.setRecordedAudioChunks([]);
+    AppState.setFinalRecordingDuration(null);
+    AppState.setRecordingStartTime(null);
+
     SettingsManager.loadSettingsFromFile(event);
     setTimeout(() => {
         updateKeyboardRangeFromSliders();
@@ -329,6 +340,13 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
     }
 });
 
+function updateLiveRecordingDurationDisplay() {
+    if (AppState.recordingStartTime && DomElements.recordingDurationDisplay) {
+        const elapsedSeconds = (Date.now() - AppState.recordingStartTime) / 1000;
+        DomElements.recordingDurationDisplay.textContent = `Rec: ${UIHelpers.formatDuration(elapsedSeconds)}`;
+    }
+}
+
 function startAudioRecording() {
     if (!AppState.audioRecordStreamDestination) {
         console.error("Audio record stream destination not initialized.");
@@ -361,21 +379,44 @@ function startAudioRecording() {
         }
     };
     AppState.mediaRecorder.onstop = () => {
-        UIHelpers.updateRecordButtonUI(false);
-        if (AppState.recordedAudioChunks.length > 0) {
-            // Handled by updateRecordButtonUI
-        }
+        // finalRecordingDuration is set in stopAudioRecording
+        UIHelpers.updateRecordButtonUI(false); // Update UI to show final duration
     };
     AppState.mediaRecorder.start();
     AppState.setIsRecording(true);
+    AppState.setRecordingStartTime(Date.now());
+    AppState.setFinalRecordingDuration(null);
+
+    if (AppState.recordingDurationUpdaterId) {
+        clearInterval(AppState.recordingDurationUpdaterId);
+    }
+    AppState.setRecordingDurationUpdaterId(setInterval(updateLiveRecordingDurationDisplay, 100)); // Update every 100ms
+    updateLiveRecordingDurationDisplay(); // Call once immediately
     UIHelpers.updateRecordButtonUI(true);
 }
 
 function stopAudioRecording() {
     if (AppState.mediaRecorder && AppState.mediaRecorder.state !== "inactive") {
-        AppState.mediaRecorder.stop();
+        AppState.mediaRecorder.stop(); // This will trigger onstop handler
     }
-    AppState.setIsRecording(false);
+    AppState.setIsRecording(false); // Set recording state to false
+
+    if (AppState.recordingDurationUpdaterId) {
+        clearInterval(AppState.recordingDurationUpdaterId);
+        AppState.setRecordingDurationUpdaterId(null);
+    }
+
+    if (AppState.recordingStartTime) {
+        const duration = (Date.now() - AppState.recordingStartTime) / 1000;
+        AppState.setFinalRecordingDuration(duration);
+    }
+    AppState.setRecordingStartTime(null); // Reset start time
+
+    // UI update for button states and duration display is handled by mediaRecorder.onstop
+    // or if onstop is not called (e.g. mediaRecorder was already inactive),
+    // we might need an explicit call here. However, relying on onstop is cleaner.
+    // If mediaRecorder was null or inactive, UI should already reflect !isRecording.
+    // If it was active, onstop will call updateRecordButtonUI(false).
 }
 
 DomElements.recordButton.addEventListener('click', () => {
@@ -406,7 +447,8 @@ DomElements.downloadRecordingButton.addEventListener('click', () => {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
-    UIHelpers.updateRecordButtonUI(AppState.isRecording);
+    // After download, the state (chunks, final duration) remains, so UI doesn't change until new recording or reset
+    UIHelpers.updateRecordButtonUI(AppState.isRecording); // isRecording is false here
 });
 
 
@@ -423,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
         DomElements.recordButton.title = "Recording not supported by your browser.";
     }
 
+    AppState.setFinalRecordingDuration(null); // Ensure it's null at app start
 
     const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (initialLength - 1);

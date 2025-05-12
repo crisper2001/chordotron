@@ -14,13 +14,15 @@ export function setControlsDisabled(disabled) {
     if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = disabled;
 
     if (DomElements.recordButton) {
+        // If main controls are disabled (e.g., sequence playing),
+        // record button is disabled UNLESS already recording (to allow stopping).
         DomElements.recordButton.disabled = disabled && !AppState.isRecording;
     }
 
     if (DomElements.downloadRecordingButton) {
-        if (disabled) {
+        if (disabled) { // If overall controls are disabled
             DomElements.downloadRecordingButton.disabled = true;
-        } else {
+        } else { // Overall controls enabled, decide based on recording state
             const hasChunks = AppState.recordedAudioChunks.length > 0;
             DomElements.downloadRecordingButton.disabled = AppState.isRecording || !hasChunks;
         }
@@ -61,7 +63,7 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
         DomElements.loadSettingsButton,
         DomElements.saveSettingsButton,
         DomElements.helpButton,
-        DomElements.downloadRecordingButton
+        // DomElements.downloadRecordingButton // Handled by updateRecordButtonUI
     ];
 
     actionButtons.forEach(button => {
@@ -69,15 +71,25 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
             button.disabled = isKeyDown;
         }
     });
-
+    
+    // Record and Download buttons are managed by updateRecordButtonUI based on AppState.isRecording
+    // but their general enabled/disabled state due to keydown needs to be considered.
     if (DomElements.recordButton) {
-        if (isKeyDown) {
-            DomElements.recordButton.disabled = !AppState.isRecording; 
+        if (isKeyDown) { // If a key is down for live playing
+            DomElements.recordButton.disabled = !AppState.isRecording; // Can only stop recording, not start
         } else {
             // When keys are up, record button state is determined by updateRecordButtonUI.
             // updateRecordButtonUI is called after this function in relevant flows (mode switch, keyup).
         }
     }
+    if (DomElements.downloadRecordingButton) {
+        if (isKeyDown) {
+             DomElements.downloadRecordingButton.disabled = true;
+        } else {
+            // updateRecordButtonUI handles this
+        }
+    }
+    // It's better to call updateRecordButtonUI after this function if mode changes or key is released.
 }
 
 export function updateUIModeVisuals(mode) {
@@ -88,8 +100,9 @@ export function updateUIModeVisuals(mode) {
     const isLivePlayingMode = mode === 'livePlaying';
 
     DomElements.timingParametersGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode);
-    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode);
+    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode); // This also affects Metronome Vol
     DomElements.playbackFooter.classList.toggle('disabled-for-live-playing', isLivePlayingMode);
+
 
     if (DomElements.parametersControlsFieldset) {
         DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
@@ -101,42 +114,52 @@ export function updateUIModeVisuals(mode) {
         DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
         if (DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
         if (DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready";
-        updateLivePlayingControlsDisabled(false);
+        updateLivePlayingControlsDisabled(false); // Reset general disabled states
+        // Master gain should always be controllable if its group isn't fully disabled
         if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
         if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
         if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
 
-    } else {
+    } else { // Chord or Degree mode
         updateBeatIndicatorsVisibility(getBeatsPerMeasure());
         if (!AppState.sequencePlaying) {
             DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
             DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
             DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
         }
-        setControlsDisabled(AppState.sequencePlaying);
+        setControlsDisabled(AppState.sequencePlaying); // Set general disabled states
     }
-    updateRecordButtonUI(AppState.isRecording);
+    updateRecordButtonUI(AppState.isRecording); // Update record button and duration display for all modes
+}
+
+export function formatDuration(totalSeconds) {
+    if (totalSeconds === null || totalSeconds < 0) return "--:--.-";
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = Math.floor(totalSeconds % 60);
+    const tenths = Math.floor((totalSeconds * 10) % 10);
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${tenths}`;
 }
 
 export function updateRecordButtonUI(isRecording) {
     const currentMode = document.querySelector('input[name="inputMode"]:checked').value;
+    const isLivePlayingAndKeyHeld = currentMode === 'livePlaying' && AppState.activeLiveKeys.size > 0;
 
     if (DomElements.recordButton) {
         if (isRecording) {
             DomElements.recordButton.textContent = '⏹️ Stop Rec';
             DomElements.recordButton.classList.add('recording');
             DomElements.recordButton.title = "Stop audio recording";
-            DomElements.recordButton.disabled = false; 
+            DomElements.recordButton.disabled = false; // Always allow stopping if recording
         } else {
             DomElements.recordButton.textContent = '⏺️ Record';
             DomElements.recordButton.classList.remove('recording');
             DomElements.recordButton.title = "Record audio output";
             
-            if ((currentMode === 'chords' || currentMode === 'degrees') && AppState.sequencePlaying) {
+            // Disable record button if sequence is playing (non-live modes)
+            // or if a live key is currently held down.
+            if (((currentMode === 'chords' || currentMode === 'degrees') && AppState.sequencePlaying) || isLivePlayingAndKeyHeld) {
                 DomElements.recordButton.disabled = true; 
-            } else if (currentMode === 'livePlaying' && AppState.activeLiveKeys.size > 0) {
-                DomElements.recordButton.disabled = true; // Cannot start recording if a live key is currently pressed
             }
             else {
                 DomElements.recordButton.disabled = false; 
@@ -145,7 +168,23 @@ export function updateRecordButtonUI(isRecording) {
     }
     if (DomElements.downloadRecordingButton) {
         const hasChunks = AppState.recordedAudioChunks.length > 0;
-        DomElements.downloadRecordingButton.disabled = isRecording || !hasChunks;
+        DomElements.downloadRecordingButton.disabled = isRecording || !hasChunks || isLivePlayingAndKeyHeld;
+    }
+
+    if (DomElements.recordingDurationDisplay) {
+        if (isRecording) {
+            DomElements.recordingDurationDisplay.style.display = 'inline-block';
+            const currentDuration = AppState.recordingStartTime ? (Date.now() - AppState.recordingStartTime) / 1000 : 0;
+            DomElements.recordingDurationDisplay.textContent = `Rec: ${formatDuration(currentDuration)}`;
+        } else { // Not recording
+            if (AppState.recordedAudioChunks.length > 0 && AppState.finalRecordingDuration !== null) {
+                DomElements.recordingDurationDisplay.style.display = 'inline-block';
+                DomElements.recordingDurationDisplay.textContent = `Length: ${formatDuration(AppState.finalRecordingDuration)}`;
+            } else {
+                DomElements.recordingDurationDisplay.style.display = 'none';
+                DomElements.recordingDurationDisplay.textContent = '';
+            }
+        }
     }
 }
 

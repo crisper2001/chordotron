@@ -19,7 +19,7 @@
         <header>
             <h1>Chordotron</h1>
             <div class="byline">by Crisper (<span style="font-size: xx-small;">and Gemini 2.5 Pro</span>)</div>
-            <div class="version">v1.0.0 Pre-release 2</div>
+            <div class="version">v1.0.0 Pre-release 3</div>
         </header>
 
 
@@ -34,6 +34,7 @@
                     <button id="recordButton" title="Record audio output">⏺️ Record</button><button
                         id="downloadRecordingButton" title="Download last recording">📥
                         Download Rec</button>
+                    <span id="recordingDurationDisplay" class="recording-duration-display"></span>
                 </div>
                 <div class="action-group help-action">
                     <button id="helpButton" title="Show help guide">❓ Help</button>
@@ -398,9 +399,11 @@
                     <li><strong>💾 Save:</strong> Save your current inputs and all parameter settings as a
                         <code>.json</code> file.
                     </li>
-                    <li><strong>⏺️ Record:</strong> Start/Stop audio recording of the app's output.</li>
+                    <li><strong>⏺️ Record:</strong> Start/Stop audio recording of the app's output. Shows live recording
+                        duration.</li>
                     <li><strong>📥 Download Rec:</strong> Appears after stopping a recording, allows downloading the
-                        recorded audio (usually <code>.wav</code> or <code>.webm</code>).</li>
+                        recorded audio (usually <code>.wav</code> or <code>.webm</code>). Shows final recording length.
+                    </li>
                     <li><strong>❓ Help:</strong> Shows this guide again.</li>
                 </ul>
             </div>
