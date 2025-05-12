@@ -112,7 +112,7 @@ export function updateUIModeVisuals(mode) {
         if (!AppState.sequencePlaying) {
             DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
             DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
-            DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+            DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
         }
         setControlsDisabled(AppState.sequencePlaying);
     }
@@ -368,7 +368,7 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
         const nextChordObject = chordsArray[0];
         DomElements.nextChordDisplay.innerHTML = `Next: ${formatNameForUI(nextChordObject)} ⏭️`;
     } else {
-        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+        DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
     }
 }
 
@@ -439,7 +439,7 @@ export function applySettingsToUI(settings) {
     if (!AppState.sequencePlaying && modeToSelect !== "livePlaying") {
         DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
         DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
-        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+        DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
     }
 
     if (DomElements.adsrCanvas) {

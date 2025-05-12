@@ -239,7 +239,7 @@ export function startPlayback() {
     UIHelpers.updateBeatIndicatorsVisibility(beatsPerMeasureForVisuals);
 
     DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
-    DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+    DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
     DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
     KeyboardUI.clearKeyboardHighlights();
 
@@ -275,7 +275,7 @@ export function stopPlayback(clearDisplay = true) {
     if (clearDisplay) {
         DomElements.currentChordDisplay.innerHTML = "🎶 Stopped.";
         DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
-        DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+        DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
         UIHelpers.updateBeatIndicatorsVisibility(UIHelpers.getBeatsPerMeasure());
         KeyboardUI.clearKeyboardHighlights(); 
     }
