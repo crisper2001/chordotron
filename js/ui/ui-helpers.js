@@ -56,15 +56,26 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
         if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
     }
 
-    if (DomElements.appActionsFieldset) {
-        DomElements.appActionsFieldset.disabled = false;
-    }
+    const actionButtons = [
+        DomElements.restoreDefaultsButton,
+        DomElements.loadSettingsButton,
+        DomElements.saveSettingsButton,
+        DomElements.helpButton,
+        DomElements.downloadRecordingButton
+    ];
+
+    actionButtons.forEach(button => {
+        if (button) {
+            button.disabled = isKeyDown;
+        }
+    });
 
     if (DomElements.recordButton) {
-        if (isKeyDown) { 
+        if (isKeyDown) {
             DomElements.recordButton.disabled = !AppState.isRecording; 
-        } else { 
-            DomElements.recordButton.disabled = false; 
+        } else {
+            // When keys are up, record button state is determined by updateRecordButtonUI.
+            // updateRecordButtonUI is called after this function in relevant flows (mode switch, keyup).
         }
     }
 }
@@ -86,7 +97,6 @@ export function updateUIModeVisuals(mode) {
 
     if (isLivePlayingMode) {
         if (AppState.sequencePlaying) stopPlayback(true);
-        if (AppState.isRecording) DomElements.recordButton.click();
         DomElements.prevChordDisplay.innerHTML = "⏮️ --";
         DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
         if (DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
@@ -110,15 +120,27 @@ export function updateUIModeVisuals(mode) {
 }
 
 export function updateRecordButtonUI(isRecording) {
+    const currentMode = document.querySelector('input[name="inputMode"]:checked').value;
+
     if (DomElements.recordButton) {
         if (isRecording) {
             DomElements.recordButton.textContent = '⏹️ Stop Rec';
             DomElements.recordButton.classList.add('recording');
             DomElements.recordButton.title = "Stop audio recording";
+            DomElements.recordButton.disabled = false; 
         } else {
             DomElements.recordButton.textContent = '⏺️ Record';
             DomElements.recordButton.classList.remove('recording');
             DomElements.recordButton.title = "Record audio output";
+            
+            if ((currentMode === 'chords' || currentMode === 'degrees') && AppState.sequencePlaying) {
+                DomElements.recordButton.disabled = true; 
+            } else if (currentMode === 'livePlaying' && AppState.activeLiveKeys.size > 0) {
+                DomElements.recordButton.disabled = true; // Cannot start recording if a live key is currently pressed
+            }
+            else {
+                DomElements.recordButton.disabled = false; 
+            }
         }
     }
     if (DomElements.downloadRecordingButton) {

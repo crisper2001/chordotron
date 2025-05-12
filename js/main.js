@@ -126,6 +126,7 @@ document.addEventListener('keyup', (event) => {
                     KeyboardUI.clearKeyboardHighlights();
                     UIHelpers.updateChordContextDisplay(null, null); 
                     UIHelpers.updateLivePlayingControlsDisabled(false); 
+                    UIHelpers.updateRecordButtonUI(AppState.isRecording);
                 }
             }
         }
