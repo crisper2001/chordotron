@@ -19,7 +19,7 @@
         <header>
             <h1>Chordotron</h1>
             <div class="byline">by Crisper (<span style="font-size: xx-small;">and Gemini 2.5 Pro</span>)</div>
-            <div class="version">v0.9.9</div>
+            <div class="version">v1.0.0 Pre-release 1</div>
         </header>
 
 
@@ -30,8 +30,9 @@
                     <button id="loadSettingsButton" title="Load song settings from a file">📁 Load</button>
                     <input type="file" id="loadSettingsFile" accept=".json" style="display: none;">
                     <button id="saveSettingsButton" title="Save current song settings">💾 Save</button>
-                
-                    <button id="recordButton" title="Record audio output">⏺️ Record</button><button id="downloadRecordingButton" title="Download last recording">📥
+
+                    <button id="recordButton" title="Record audio output">⏺️ Record</button><button
+                        id="downloadRecordingButton" title="Download last recording">📥
                         Download Rec</button>
                 </div>
                 <div class="action-group help-action">
@@ -51,7 +52,7 @@
                     </div>
 
                     <div id="chordNameInputArea">
-                        <label for="chordInput">Chord Progression:</label>
+                        <label for="chordInput">Chords:</label>
                         <textarea id="chordInput" rows="15" style="resize: none;"></textarea>
                     </div>
 
@@ -89,26 +90,24 @@
                                 </select>
                             </div>
                         </div>
-                        <label for="scaleDegreeInput">Scale Degrees:</label>
+                        <label for="scaleDegreeInput">Degrees:</label>
                         <textarea id="scaleDegreeInput" rows="15" style="resize: none;"></textarea>
                     </div>
 
                     <div id="livePlayingInputArea" style="display:none;">
-                        <label>Live Playing Chords (Keys: 1, 2, ..., 9, 0, -, =):</label>
+                        <label>Chords:</label>
                         <div class="trigger-grid-container">
                             <div class="trigger-input-group">
                                 <span class="trigger-key-label">1</span>
-                                <input type="text" id="triggerChord0" class="trigger-chord-input"
-                                    placeholder="e.g. Cm7">
+                                <input type="text" id="triggerChord0" class="trigger-chord-input">
                             </div>
                             <div class="trigger-input-group">
                                 <span class="trigger-key-label">2</span>
-                                <input type="text" id="triggerChord1" class="trigger-chord-input" placeholder="e.g. F7">
+                                <input type="text" id="triggerChord1" class="trigger-chord-input">
                             </div>
                             <div class="trigger-input-group">
                                 <span class="trigger-key-label">3</span>
-                                <input type="text" id="triggerChord2" class="trigger-chord-input"
-                                    placeholder="e.g. Bbmaj7">
+                                <input type="text" id="triggerChord2" class="trigger-chord-input">
                             </div>
                             <div class="trigger-input-group">
                                 <span class="trigger-key-label">4</span>
@@ -135,15 +134,15 @@
                                 <input type="text" id="triggerChord8" class="trigger-chord-input">
                             </div>
                             <div class="trigger-input-group">
-                                <span class="trigger-key-label">0</span>
+                                <span class="trigger-key-label">10</span>
                                 <input type="text" id="triggerChord9" class="trigger-chord-input">
                             </div>
                             <div class="trigger-input-group">
-                                <span class="trigger-key-label">-</span>
+                                <span class="trigger-key-label">11</span>
                                 <input type="text" id="triggerChord10" class="trigger-chord-input">
                             </div>
                             <div class="trigger-input-group">
-                                <span class="trigger-key-label">=</span>
+                                <span class="trigger-key-label">12</span>
                                 <input type="text" id="triggerChord11" class="trigger-chord-input">
                             </div>
                         </div>
@@ -153,7 +152,7 @@
 
             <section class="parameters-section">
                 <fieldset id="parametersControlsFieldset">
-                    <h2>⚙️ Parameters</h2>
+                    <h2>⚙️ Settings</h2>
                     <div class="parameters-columns">
                         <div class="control-group timing-group" id="timingParametersGroup">
                             <h3>⏱️ Timing</h3>
@@ -295,17 +294,17 @@
         <div class="modal-content">
             <button id="modalCloseButton" class="modal-close-button" title="Close Help"
                 aria-label="Close help dialog">×</button>
-            <h2 id="helpModalTitle">Chordotron - Quick Start</h2>
+            <h2 id="helpModalTitle">Help</h2>
 
             <div class="modal-section">
-                <h3>What is Chordotron?</h3>
+                <h3>1. What is Chordotron?</h3>
                 <p><i>Chordotron</i> is a web-based tool to quickly prototype, play, and experiment with chord
                     progressions. You can input chords directly, use scale degrees, or trigger chords live with your
                     keyboard.</p>
             </div>
 
             <div class="modal-section">
-                <h3>1. Inputting Your Progression / Chords</h3>
+                <h3>2. Inputting Your Progression / Chords</h3>
                 <p>Choose your input method:</p>
                 <ul>
                     <li><strong>🎵 Chord Names:</strong> Enter standard chord notation for sequential playback.
@@ -341,7 +340,7 @@
 
 
             <div class="modal-section">
-                <h3>2. Setting Parameters (⚙️)</h3>
+                <h3>3. Setting Parameters (⚙️)</h3>
                 <ul>
                     <li><strong>⏱️ Timing (Chord/Degree Modes Only):</strong>
                         <ul>
@@ -374,7 +373,7 @@
             </div>
 
             <div class="modal-section">
-                <h3>3. Playback Controls (Footer - Chord/Degree Modes Only)</h3>
+                <h3>4. Playback Controls (Footer - Chord/Degree Modes Only)</h3>
                 <ul>
                     <li><strong>▶️ Play / ⏹️ Stop (Spacebar):</strong> Starts or stops sequential playback.</li>
                     <li><strong>🔁 Loop:</strong> Toggles looping of the progression.</li>
@@ -385,14 +384,14 @@
                 </ul>
             </div>
             <div class="modal-section">
-                <h3>4. Keyboard (Middle Section - All Modes)</h3>
+                <h3>5. Keyboard (Middle Section - All Modes)</h3>
                 <p>The piano keyboard visualizes the notes being played for the current chord. In Chord/Degree modes, it
                     also highlights the selected <strong>Pitch Range</strong>. In Live Playing mode, the range defined
                     in Parameters is used for voicing.</p>
             </div>
 
             <div class="modal-section">
-                <h3>5. File Operations (Top Bar - All Modes)</h3>
+                <h3>6. File Operations (Top Bar - All Modes)</h3>
                 <ul>
                     <li><strong>📄 New:</strong> Resets all settings and inputs to default.</li>
                     <li><strong>📁 Load:</strong> Load a previously saved song/settings (<code>.json</code> file).</li>
@@ -402,13 +401,11 @@
                     <li><strong>⏺️ Record:</strong> Start/Stop audio recording of the app's output.</li>
                     <li><strong>📥 Download Rec:</strong> Appears after stopping a recording, allows downloading the
                         recorded audio (usually <code>.wav</code> or <code>.webm</code>).</li>
-                    <li><strong>📤 Export Seq:</strong> (Chord/Degree modes only) Export the current chord sequence as a
-                        text file.</li>
                     <li><strong>❓ Help:</strong> Shows this guide again.</li>
                 </ul>
             </div>
             <div class="modal-section">
-                <h3>Tips & Shortcuts</h3>
+                <h3>7. Tips & Shortcuts</h3>
                 <ul>
                     <li><strong><code>Spacebar</code>:</strong> Play/Stop (Chord/Degree modes).</li>
                     <li><strong><code>L</code> key:</strong> Toggle Loop (Chord/Degree modes).</li>

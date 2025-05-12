@@ -100,7 +100,7 @@ export function updateUIModeVisuals(mode) {
         DomElements.prevChordDisplay.innerHTML = "⏮️ --";
         DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
         if (DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
-        if (DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
+        if (DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready";
         updateLivePlayingControlsDisabled(false);
         if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
@@ -301,7 +301,7 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
     if (currentInputMode === 'livePlaying') {
         if (AppState.activeLiveKeys.size === 0) {
-            DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
+            DomElements.currentChordDisplay.innerHTML = "🎹 Ready";
         } else {
             if (chordsArray && chordsArray.length > 0 && chordsArray[0]) {
                 DomElements.currentChordDisplay.innerHTML = `🎹 ${formatChordForDisplay(chordsArray[0].name)}`;
