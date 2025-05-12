@@ -84,9 +84,10 @@ header h1 {
     background-color: #495057;
     color: #F0F2F5;
     border-top: 1px solid #3A3F44;
-    gap: 20px;
+    gap: 8px;
     flex-wrap: nowrap;
     flex-shrink: 0;
+    height: 100px;
 }
 
 fieldset#mainControlsFieldset,
