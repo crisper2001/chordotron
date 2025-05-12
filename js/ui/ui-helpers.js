@@ -13,9 +13,23 @@ export function setControlsDisabled(disabled) {
     if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = disabled;
     if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = disabled;
 
+    if (DomElements.recordButton) {
+        DomElements.recordButton.disabled = disabled && !AppState.isRecording;
+    }
+
+    if (DomElements.downloadRecordingButton) {
+        if (disabled) {
+            DomElements.downloadRecordingButton.disabled = true;
+        } else {
+            const hasChunks = AppState.recordedAudioChunks.length > 0;
+            DomElements.downloadRecordingButton.disabled = AppState.isRecording || !hasChunks;
+        }
+    }
+
+
     if (!disabled) {
         DomElements.timingParametersGroup.classList.remove('disabled-in-live-mode');
-        DomElements.soundOptionsGroup.classList.remove('disabled-in-live-mode'); 
+        DomElements.soundOptionsGroup.classList.remove('disabled-in-live-mode');
         if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
         if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
@@ -25,28 +39,32 @@ export function setControlsDisabled(disabled) {
 
 export function updateLivePlayingControlsDisabled(isKeyDown) {
     DomElements.mainControlsFieldset.disabled = isKeyDown;
-    
-    if(DomElements.parametersControlsFieldset) {
-         DomElements.parametersControlsFieldset.disabled = isKeyDown;
-         if (DomElements.masterGainSlider) {
-            DomElements.masterGainSlider.disabled = isKeyDown; 
-            const masterGainLabel = document.querySelector('label[for="masterGain"]');
-            if (masterGainLabel) masterGainLabel.classList.toggle('disabled-text', isKeyDown);
-            if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.toggle('disabled-text', isKeyDown);
-         }
-    }
-    
-    if (DomElements.parametersControlsFieldset && isKeyDown) {
-        DomElements.parametersControlsFieldset.classList.add('live-playing-active');
-    } else if (DomElements.parametersControlsFieldset) {
-        DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
+
+    if (DomElements.parametersControlsFieldset) {
+        DomElements.parametersControlsFieldset.disabled = isKeyDown;
+        if (isKeyDown) {
+            DomElements.parametersControlsFieldset.classList.add('live-playing-active');
+        } else {
+            DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
+        }
     }
 
-    if (isKeyDown) {
-        if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = false;
-    } else {
-         if (DomElements.appActionsFieldset && !AppState.sequencePlaying) {
-            DomElements.appActionsFieldset.disabled = false;
+    if (DomElements.masterGainSlider) {
+        DomElements.masterGainSlider.disabled = false; 
+        const masterGainLabel = document.querySelector('label[for="masterGain"]');
+        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
+        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+    }
+
+    if (DomElements.appActionsFieldset) {
+        DomElements.appActionsFieldset.disabled = false;
+    }
+
+    if (DomElements.recordButton) {
+        if (isKeyDown) { 
+            DomElements.recordButton.disabled = !AppState.isRecording; 
+        } else { 
+            DomElements.recordButton.disabled = false; 
         }
     }
 }
@@ -59,20 +77,21 @@ export function updateUIModeVisuals(mode) {
     const isLivePlayingMode = mode === 'livePlaying';
 
     DomElements.timingParametersGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode);
-    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode); 
+    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode);
     DomElements.playbackFooter.classList.toggle('disabled-for-live-playing', isLivePlayingMode);
-    
+
     if (DomElements.parametersControlsFieldset) {
         DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
     }
 
     if (isLivePlayingMode) {
         if (AppState.sequencePlaying) stopPlayback(true);
+        if (AppState.isRecording) DomElements.recordButton.click();
         DomElements.prevChordDisplay.innerHTML = "⏮️ --";
         DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
-        if(DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
-        if(DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
-        updateLivePlayingControlsDisabled(false); 
+        if (DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
+        if (DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
+        updateLivePlayingControlsDisabled(false);
         if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
         if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
@@ -81,41 +100,57 @@ export function updateUIModeVisuals(mode) {
     } else {
         updateBeatIndicatorsVisibility(getBeatsPerMeasure());
         if (!AppState.sequencePlaying) {
-             DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
-             DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
-             DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
+            DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
+            DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
+            DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
         }
-        DomElements.mainControlsFieldset.disabled = false;
-        if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = false;
-         if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
-         const masterGainLabel = document.querySelector('label[for="masterGain"]');
-        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
-        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
-        if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = false;
+        setControlsDisabled(AppState.sequencePlaying);
+    }
+    updateRecordButtonUI(AppState.isRecording);
+}
+
+export function updateRecordButtonUI(isRecording) {
+    if (DomElements.recordButton) {
+        if (isRecording) {
+            DomElements.recordButton.textContent = '⏹️ Stop Rec';
+            DomElements.recordButton.classList.add('recording');
+            DomElements.recordButton.title = "Stop audio recording";
+        } else {
+            DomElements.recordButton.textContent = '⏺️ Record';
+            DomElements.recordButton.classList.remove('recording');
+            DomElements.recordButton.title = "Record audio output";
+        }
+    }
+    if (DomElements.downloadRecordingButton) {
+        const hasChunks = AppState.recordedAudioChunks.length > 0;
+        DomElements.downloadRecordingButton.disabled = isRecording || !hasChunks;
     }
 }
+
 
 export function setupSliderListeners() {
     const sliders = [
         { el: DomElements.bpmSlider, span: DomElements.bpmValueSpan, isFloat: false },
         { el: DomElements.metronomeVolumeSlider, span: DomElements.metronomeVolumeValueSpan, isFloat: true },
-        { el: DomElements.masterGainSlider, span: DomElements.masterGainValueSpan, isFloat: true },
     ];
-    sliders.forEach(({el, span, isFloat}) => {
-        if (!el) return; 
+    sliders.forEach(({ el, span, isFloat }) => {
+        if (!el) return;
         if (span) span.textContent = parseFloat(el.value).toFixed(isFloat ? 2 : 0);
         el.addEventListener('input', (event) => {
             if (span) span.textContent = parseFloat(event.target.value).toFixed(isFloat ? 2 : 0);
         });
     });
+    if (DomElements.masterGainSlider && DomElements.masterGainValueSpan) {
+        DomElements.masterGainValueSpan.textContent = parseFloat(DomElements.masterGainSlider.value).toFixed(2);
+    }
 }
 
 export function updatePitchRangeDisplay() {
     const startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
-    
+
     const clampedStartMidi = Math.max(Constants.MIDI_C2, Math.min(startMidi, Constants.MIDI_C5));
-     if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi) ) {
+    if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi)) {
         DomElements.rangeStartNoteSlider.value = clampedStartMidi;
     }
     const finalStartMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
@@ -180,21 +215,21 @@ export function formatChordForDisplay(chordNameToFormat) {
     if (!chordNameToFormat || typeof chordNameToFormat !== 'string') return "--";
 
     let displayChordName = chordNameToFormat;
-    
+
     const replaceSymbols = (name) => {
         let tempName = name;
         if (Constants.DISPLAY_SYMBOL_MAP) {
             for (const key in Constants.DISPLAY_SYMBOL_MAP) {
-                 if (tempName.includes(key)) {
-                 }
+                if (tempName.includes(key)) {
+                }
             }
         }
-        tempName = tempName.replace(/h7/g, 'ø7'); 
+        tempName = tempName.replace(/h7/g, 'ø7');
         tempName = tempName.replace(/(?<![A-Ga-g])o7/g, '°7');
         tempName = tempName.replace(/(?<![A-Ga-g])o(?!n)(?!r)(?!c)/g, '°');
         return tempName;
     };
-    
+
     const parts = displayChordName.split('/');
     let mainPart = parts[0];
     const bassPart = parts.length > 1 ? normalizeDisplayNoteName(parts[1]) : null;
@@ -221,22 +256,22 @@ export function formatChordForDisplay(chordNameToFormat) {
                 .replace(/AUG/ig, 'aug')
                 .replace(/SUSPENDED/ig, 'sus')
                 .replace(/SUS/ig, 'sus');
-            
+
             if (qualityDisplay.toLowerCase() === 'maj') {
                 qualityDisplay = '';
             }
             else if (qualityDisplay.toLowerCase() === 'min') {
-                 qualityDisplay = 'm';
+                qualityDisplay = 'm';
             }
         }
         mainPart = rootDisplay + qualityDisplay;
     }
-    
+
     let finalDisplayName = replaceSymbols(mainPart);
     if (bassPart) {
-        finalDisplayName += "/" + normalizeDisplayNoteName(bassPart); 
+        finalDisplayName += "/" + normalizeDisplayNoteName(bassPart);
     }
-    
+
     return finalDisplayName;
 }
 
@@ -246,7 +281,7 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
         if (AppState.activeLiveKeys.size === 0) {
             DomElements.currentChordDisplay.innerHTML = "🎹 Ready (1-=)";
         } else {
-             if (chordsArray && chordsArray.length > 0 && chordsArray[0]) {
+            if (chordsArray && chordsArray.length > 0 && chordsArray[0]) {
                 DomElements.currentChordDisplay.innerHTML = `🎹 ${formatChordForDisplay(chordsArray[0].name)}`;
             } else {
                 DomElements.currentChordDisplay.innerHTML = "🎹 ---";
@@ -260,16 +295,16 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
     const formatNameForUI = (chordObject) => {
         if (!chordObject) return "--";
         let displayName = "";
-        
+
         const looksLikeScaleDegree = chordObject.originalInputToken && /^(b|#)?[IVXLCDMivxlcdm1-7]/i.test(chordObject.originalInputToken.trim().split('/')[0]);
 
         if (chordObject.originalInputToken && !looksLikeScaleDegree && !chordObject.error) {
             if (chordObject.bassNoteName && chordObject.wasSlashPlayed === false) {
                 displayName = chordObject.originalInputToken.split('/')[0].replace(/\(\d+\)$/, '');
             } else {
-                displayName = chordObject.originalInputToken.replace(/\(\d+\)$/, ''); 
+                displayName = chordObject.originalInputToken.replace(/\(\d+\)$/, '');
             }
-        } else if (chordObject.name && chordObject.name !== '?') { 
+        } else if (chordObject.name && chordObject.name !== '?') {
             const mainChordMatch = chordObject.name.match(/^([A-Ga-g][#b]?)(.*)$/);
             if (mainChordMatch) {
                 const root = normalizeDisplayNoteName(mainChordMatch[1]);
@@ -279,16 +314,16 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
                 if (chordObject.bassNoteName && chordObject.wasSlashPlayed === true) {
                     displayName += "/" + normalizeDisplayNoteName(chordObject.bassNoteName);
                 }
-            } else { 
+            } else {
                 displayName = chordObject.name;
-                 if (chordObject.bassNoteName && chordObject.wasSlashPlayed === true) {
+                if (chordObject.bassNoteName && chordObject.wasSlashPlayed === true) {
                     displayName += "/" + normalizeDisplayNoteName(chordObject.bassNoteName);
                 }
             }
         } else {
-            displayName = chordObject.originalInputToken || "--"; 
+            displayName = chordObject.originalInputToken || "--";
         }
-        return formatChordForDisplay(displayName); 
+        return formatChordForDisplay(displayName);
     };
 
     const currentChordObject = chordsArray[currentIndex];
@@ -335,6 +370,8 @@ export function applySettingsToUI(settings) {
     DomElements.oscillatorTypeEl.value = settings.oscillatorType;
     DomElements.metronomeVolumeSlider.value = settings.metronomeVolume;
     DomElements.masterGainSlider.value = settings.masterGain ?? 0.5;
+    if (AppState.masterGainNode) AppState.masterGainNode.gain.value = parseFloat(DomElements.masterGainSlider.value);
+
     DomElements.synthGainSlider.value = settings.synthGain ?? 0.5;
     DomElements.loopToggle.checked = settings.loopToggle;
     DomElements.metronomeAudioToggle.checked = settings.metronomeAudioToggle;
@@ -342,7 +379,7 @@ export function applySettingsToUI(settings) {
     DomElements.scaleDegreeInputEl.value = settings.scaleDegreeInput;
     DomElements.songKeySelect.value = settings.songKey;
     DomElements.keyModeSelect.value = settings.keyMode;
-    
+
     DomElements.rangeStartNoteSlider.value = settings.rangeStartMidi ?? Constants.DEFAULT_MIN_MIDI_RANGE_START;
     DomElements.rangeLengthSlider.value = settings.rangeLength ?? Constants.DEFAULT_RANGE_LENGTH;
 
@@ -353,10 +390,10 @@ export function applySettingsToUI(settings) {
             }
         });
     }
-    
+
     const currentLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (currentLength - 1);
-    if (parseInt(DomElements.rangeStartNoteSlider.value, 10) > parseInt(DomElements.rangeStartNoteSlider.max, 10) ) {
+    if (parseInt(DomElements.rangeStartNoteSlider.value, 10) > parseInt(DomElements.rangeStartNoteSlider.max, 10)) {
         DomElements.rangeStartNoteSlider.value = DomElements.rangeStartNoteSlider.max;
     }
 
@@ -364,15 +401,18 @@ export function applySettingsToUI(settings) {
 
     const modeToSelect = settings.inputMode || "chords";
     document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
-    updateUIModeVisuals(modeToSelect);
+
 
     setupSliderListeners();
-    
+
     updateKnobValueSpan(DomElements.attackSlider, DomElements.attackValueSpan);
     updateKnobValueSpan(DomElements.decaySlider, DomElements.decayValueSpan);
     updateKnobValueSpan(DomElements.sustainSlider, DomElements.sustainValueSpan);
     updateKnobValueSpan(DomElements.releaseSlider, DomElements.releaseValueSpan);
     updateKnobValueSpan(DomElements.synthGainSlider, DomElements.synthGainValueSpan);
+
+    updateUIModeVisuals(modeToSelect);
+
 
     if (!AppState.sequencePlaying && modeToSelect !== "livePlaying") {
         DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
@@ -380,7 +420,7 @@ export function applySettingsToUI(settings) {
         DomElements.nextChordDisplay.innerHTML = "Next: ⏭️ --";
     }
 
-    if (DomElements.adsrCanvas) { 
+    if (DomElements.adsrCanvas) {
         const adsrSettings = {
             attack: parseFloat(DomElements.attackSlider.value),
             decay: parseFloat(DomElements.decaySlider.value),

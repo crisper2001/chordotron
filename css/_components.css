@@ -26,6 +26,18 @@
     outline-offset: 1px;
     box-shadow: 0 0 0 2px rgba(58, 124, 165, 0.2);
 }
+.app-actions-bar button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: #E9ECEF !important; /* Use important to override specific button styles if necessary */
+    border-color: #CED4DA !important;
+    color: #6C757D !important;
+    box-shadow: none;
+    transform: none;
+}
+.app-actions-bar button:disabled:hover {
+    background-color: #E9ECEF !important;
+}
 
 #playStopButton {
     background-image: linear-gradient(to bottom, #5CB85C, #4CAF50);
@@ -55,6 +67,17 @@
 #playStopButton.playing:hover {
     background-image: linear-gradient(to bottom, #D43F3A, #C9302C);
 }
+
+#recordButton.recording {
+    background-color: #D9534F;
+    border-color: #C9302C;
+    color: white;
+}
+#recordButton.recording:hover {
+    background-color: #C9302C;
+    border-color: #AC2925;
+}
+
 
 .action-group {
     display: flex;

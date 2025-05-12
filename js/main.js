@@ -86,13 +86,12 @@ document.addEventListener('keydown', (event) => {
         return; 
     }
 
-    switch (event.key) {
+    switch (event.key.toLowerCase()) {
         case ' ': 
             event.preventDefault();
             DomElements.playStopButton.click();
             break;
         case 'l':
-        case 'L':
             event.preventDefault();
             if (DomElements.loopToggle) {
                 DomElements.loopToggle.checked = !DomElements.loopToggle.checked;
@@ -100,11 +99,16 @@ document.addEventListener('keydown', (event) => {
             }
             break;
         case 'm':
-        case 'M':
             event.preventDefault();
             if (DomElements.metronomeAudioToggle) {
                 DomElements.metronomeAudioToggle.checked = !DomElements.metronomeAudioToggle.checked;
                 DomElements.metronomeAudioToggle.dispatchEvent(new Event('change')); 
+            }
+            break;
+        case 'r':
+            event.preventDefault();
+            if(DomElements.recordButton) {
+                DomElements.recordButton.click();
             }
             break;
     }
@@ -157,9 +161,7 @@ function playLiveChord(chordString, keyIdentifier) {
     );
 
     if (voicingResult.frequencies && voicingResult.frequencies.length > 0) {
-        const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
         const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
-        const combinedGainForChord = currentSynthGain * currentMasterGain;
         const currentADSR = { 
             attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
             decay: Math.max(0.01, parseFloat(DomElements.decaySlider.value)),
@@ -173,7 +175,7 @@ function playLiveChord(chordString, keyIdentifier) {
             AppState.audioCtx.currentTime, 
             currentADSR, 
             currentOscillatorType, 
-            combinedGainForChord,
+            currentSynthGain,
             keyIdentifier
         );
         
@@ -189,6 +191,7 @@ function playLiveChord(chordString, keyIdentifier) {
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new song and reset all settings to their defaults? This will also clear your autosaved project.")) {
+        if(AppState.isRecording) stopAudioRecording();
         SettingsManager.clearAutosavedSettings();
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
         updateKeyboardRangeFromSliders();
@@ -201,6 +204,7 @@ DomElements.restoreDefaultsButton.addEventListener('click', () => {
 DomElements.saveSettingsButton.addEventListener('click', SettingsManager.saveSettingsToFile);
 DomElements.loadSettingsButton.addEventListener('click', () => DomElements.loadSettingsFile.click());
 DomElements.loadSettingsFile.addEventListener('change', (event) => {
+    if(AppState.isRecording) stopAudioRecording();
     SettingsManager.loadSettingsFromFile(event);
     setTimeout(() => {
         updateKeyboardRangeFromSliders();
@@ -278,6 +282,14 @@ function updateADSRVisualizerFromSliders() {
     }
 });
 
+DomElements.masterGainSlider.addEventListener('input', (event) => {
+    if (AppState.masterGainNode) {
+        AppState.masterGainNode.gain.setValueAtTime(parseFloat(event.target.value), AppState.audioCtx.currentTime);
+    }
+    if(DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.textContent = parseFloat(event.target.value).toFixed(2);
+});
+
+
 DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
     if (currentInputMode === 'livePlaying') return;
@@ -298,13 +310,109 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
     }
 });
 
+function startAudioRecording() {
+    if (!AppState.audioRecordStreamDestination) {
+        console.error("Audio record stream destination not initialized.");
+        alert("Recording setup error. Cannot start recording.");
+        return;
+    }
+    if (AppState.audioCtx.state === 'suspended') {
+        AppState.audioCtx.resume().catch(e => {});
+    }
+
+    AppState.setRecordedAudioChunks([]);
+    try {
+        const options = { mimeType: 'audio/webm;codecs=opus' };
+        let mediaRecorderInstance;
+        if (MediaRecorder.isTypeSupported(options.mimeType)) {
+            mediaRecorderInstance = new MediaRecorder(AppState.audioRecordStreamDestination.stream, options);
+        } else {
+            mediaRecorderInstance = new MediaRecorder(AppState.audioRecordStreamDestination.stream);
+        }
+        AppState.setMediaRecorder(mediaRecorderInstance);
+    } catch (e) {
+        console.error("Error creating MediaRecorder:", e);
+        alert("Could not create MediaRecorder. Your browser might not support it or the MIME type.");
+        return;
+    }
+    
+    AppState.mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+            AppState.recordedAudioChunks.push(event.data);
+        }
+    };
+    AppState.mediaRecorder.onstop = () => {
+        UIHelpers.updateRecordButtonUI(false);
+        if (AppState.recordedAudioChunks.length > 0) {
+            // Handled by updateRecordButtonUI
+        }
+    };
+    AppState.mediaRecorder.start();
+    AppState.setIsRecording(true);
+    UIHelpers.updateRecordButtonUI(true);
+}
+
+function stopAudioRecording() {
+    if (AppState.mediaRecorder && AppState.mediaRecorder.state !== "inactive") {
+        AppState.mediaRecorder.stop();
+    }
+    AppState.setIsRecording(false);
+}
+
+DomElements.recordButton.addEventListener('click', () => {
+    if (AppState.isRecording) {
+        stopAudioRecording();
+    } else {
+        startAudioRecording();
+    }
+});
+
+DomElements.downloadRecordingButton.addEventListener('click', () => {
+    if (AppState.recordedAudioChunks.length === 0) {
+        alert("No audio recorded or recording is empty.");
+        return;
+    }
+    const mimeType = (AppState.mediaRecorder && AppState.mediaRecorder.mimeType) ? AppState.mediaRecorder.mimeType : 'audio/webm';
+    const fileExtension = mimeType.includes('wav') ? '.wav' : '.webm';
+
+    const blob = new Blob(AppState.recordedAudioChunks, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
+    a.download = `chordotron-recording-${timestamp}${fileExtension}`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+    UIHelpers.updateRecordButtonUI(AppState.isRecording);
+});
+
+
 document.addEventListener('DOMContentLoaded', () => {
+    AppState.masterGainNode.connect(AppState.audioCtx.destination);
+    if (AppState.audioCtx.createMediaStreamDestination) {
+        AppState.setAudioRecordStreamDestination(AppState.audioCtx.createMediaStreamDestination());
+        if(AppState.audioRecordStreamDestination) {
+            AppState.masterGainNode.connect(AppState.audioRecordStreamDestination);
+        }
+    } else {
+        console.warn("MediaStreamDestinationNode not supported. Recording will not be available.");
+        DomElements.recordButton.disabled = true;
+        DomElements.recordButton.title = "Recording not supported by your browser.";
+    }
+
+
     const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (initialLength - 1);
 
     const loadedFromAutosave = SettingsManager.loadAutosavedSettings();
     if (!loadedFromAutosave) {
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
+    } else {
+        UIHelpers.applySettingsToUI(SettingsManager.collectCurrentSettings());
     }
     
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
@@ -322,6 +430,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initHelpGuideModalLogic(); 
     attachAutosaveListeners();
+    UIHelpers.setupSliderListeners();
+
+
+    if (DomElements.masterGainSlider && AppState.masterGainNode) {
+         AppState.masterGainNode.gain.value = parseFloat(DomElements.masterGainSlider.value);
+    }
+
 
     function initAudioContext() {
         if (AppState.audioCtx.state === 'suspended') {

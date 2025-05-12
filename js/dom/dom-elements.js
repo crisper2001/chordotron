@@ -37,6 +37,9 @@ export const restoreDefaultsButton = document.getElementById('restoreDefaultsBut
 export const saveSettingsButton = document.getElementById('saveSettingsButton');
 export const loadSettingsFile = document.getElementById('loadSettingsFile');
 export const loadSettingsButton = document.getElementById('loadSettingsButton');
+export const recordButton = document.getElementById('recordButton');
+export const downloadRecordingButton = document.getElementById('downloadRecordingButton');
+
 
 export const rangeStartNoteSlider = document.getElementById('rangeStartNoteSlider');
 export const rangeStartNoteValueSpan = document.getElementById('rangeStartNoteValue');

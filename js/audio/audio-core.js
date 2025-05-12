@@ -28,7 +28,7 @@ function createSoundSource(freq, startTime, adsr, noteHeldDuration, oscillatorTy
     }
 
     oscillator.connect(gainNode);
-    gainNode.connect(AppState.audioCtx.destination);
+    gainNode.connect(AppState.masterGainNode);
 
     oscillator.start(startTime);
 
@@ -39,11 +39,11 @@ function createSoundSource(freq, startTime, adsr, noteHeldDuration, oscillatorTy
     return { oscillator, gainNode, theoreticalEndTime };
 }
 
-export function playTimedFrequencies(frequencies, noteHeldDuration, startTime, adsr, currentOscillatorType, combinedGainValue, type = 'chord') {
+export function playTimedFrequencies(frequencies, noteHeldDuration, startTime, adsr, currentOscillatorType, sourceSpecificGainValue, type = 'chord') {
     const newActiveOscillators = [];
 
     frequencies.forEach(freq => {
-        const soundSource = createSoundSource(freq, startTime, adsr, noteHeldDuration, currentOscillatorType, combinedGainValue);
+        const soundSource = createSoundSource(freq, startTime, adsr, noteHeldDuration, currentOscillatorType, sourceSpecificGainValue);
         if (soundSource) {
             soundSource.oscillator.stop(soundSource.theoreticalEndTime);
             newActiveOscillators.push({ 
@@ -57,14 +57,14 @@ export function playTimedFrequencies(frequencies, noteHeldDuration, startTime, a
     AppState.setActiveOscillators([...AppState.activeOscillators, ...newActiveOscillators]);
 }
 
-export function startLiveFrequencies(frequencies, startTime, adsr, currentOscillatorType, combinedGainValue, keyIdentifier) {
+export function startLiveFrequencies(frequencies, startTime, adsr, currentOscillatorType, sourceSpecificGainValue, keyIdentifier) {
     if (AppState.livePlayingAudioNodes[keyIdentifier]) {
         stopLiveFrequencies(keyIdentifier, 0.01); 
     }
 
     const newNodesForKey = [];
     frequencies.forEach(freq => {
-        const soundSource = createSoundSource(freq, startTime, adsr, Infinity, currentOscillatorType, combinedGainValue);
+        const soundSource = createSoundSource(freq, startTime, adsr, Infinity, currentOscillatorType, sourceSpecificGainValue);
         if (soundSource) {
             newNodesForKey.push({
                 oscillator: soundSource.oscillator,

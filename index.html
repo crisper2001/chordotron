@@ -19,17 +19,22 @@
         <header>
             <h1>Chordotron</h1>
             <div class="byline">by Crisper (<span style="font-size: xx-small;">and Gemini 2.5 Pro</span>)</div>
-            <div class="version">v0.9.8</div>
+            <div class="version">v0.9.9</div>
         </header>
 
 
         <fieldset id="appActionsFieldset">
             <div class="app-actions-bar">
-                <div class="action-group file-actions">
+                <div class="action-group">
                     <button id="restoreDefaultsButton" title="Create a new song (resets settings)">📄 New</button>
                     <button id="loadSettingsButton" title="Load song settings from a file">📁 Load</button>
                     <input type="file" id="loadSettingsFile" accept=".json" style="display: none;">
                     <button id="saveSettingsButton" title="Save current song settings">💾 Save</button>
+                
+                    <button id="recordButton" title="Record audio output">⏺️ Record</button><button id="downloadRecordingButton" title="Download last recording">📥
+                        Download Rec</button>
+                </div>
+                <div class="action-group help-action">
                     <button id="helpButton" title="Show help guide">❓ Help</button>
                 </div>
             </div>
@@ -224,7 +229,7 @@
                             <h3>🔊 Master & Metronome</h3>
                             <label for="masterGain">Master Gain: <span id="masterGainValue">0.5</span></label>
                             <input type="range" id="masterGain" value="0.5" min="0" max="1" step="0.01">
-                            <label for="metronomeVolume" id="metronomeVolumeLabel">Metronome Vol Adj: <span
+                            <label for="metronomeVolume" id="metronomeVolumeLabel">Metronome Vol: <span
                                     id="metronomeVolumeValue">0.8</span></label>
                             <input type="range" id="metronomeVolume" value="0.8" min="0" max="1" step="0.01">
                         </div>
@@ -356,8 +361,7 @@
                     <li><strong>🔊 Master & Metronome:</strong>
                         <ul>
                             <li><strong>Master Gain (All Modes):</strong> Overall output volume.</li>
-                            <li><strong>Metronome Vol Adj (Chord/Degree Modes Only):</strong> Adjusts metronome volume
-                                relative to master gain.</li>
+                            <li><strong>Metronome Vol (Chord/Degree Modes Only):</strong> Adjusts metronome volume.</li>
                         </ul>
                     </li>
                     <li><strong>↔️ Pitch Range (All Modes):</strong>
@@ -395,6 +399,11 @@
                     <li><strong>💾 Save:</strong> Save your current inputs and all parameter settings as a
                         <code>.json</code> file.
                     </li>
+                    <li><strong>⏺️ Record:</strong> Start/Stop audio recording of the app's output.</li>
+                    <li><strong>📥 Download Rec:</strong> Appears after stopping a recording, allows downloading the
+                        recorded audio (usually <code>.wav</code> or <code>.webm</code>).</li>
+                    <li><strong>📤 Export Seq:</strong> (Chord/Degree modes only) Export the current chord sequence as a
+                        text file.</li>
                     <li><strong>❓ Help:</strong> Shows this guide again.</li>
                 </ul>
             </div>
@@ -404,6 +413,7 @@
                     <li><strong><code>Spacebar</code>:</strong> Play/Stop (Chord/Degree modes).</li>
                     <li><strong><code>L</code> key:</strong> Toggle Loop (Chord/Degree modes).</li>
                     <li><strong><code>M</code> key:</strong> Toggle Metronome (Chord/Degree modes).</li>
+                    <li><strong><code>R</code> key:</strong> Toggle Recording.</li>
                     <li><strong><code>1</code> to <code>=</code> keys (Hold):</strong> Trigger assigned chords (Live
                         Playing mode).</li>
                     <li>You can play a <strong>selection</strong> of your input by highlighting text in the Chord/Degree
@@ -415,4 +425,5 @@
 
     <script type="module" src="js/main.js" defer></script>
 </body>
+
 </html>

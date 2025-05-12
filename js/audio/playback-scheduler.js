@@ -12,9 +12,7 @@ function createMetronomeTick(time, isDownbeat) {
     const tickHeldDuration = 0.05;
     const adsrTick = { attack: 0.005, decay: 0.03, sustain: 0.1, release: 0.06 };
     const frequency = isDownbeat ? 1200 : 1000;
-    const metronomeVolumeAdjustment = parseFloat(DomElements.metronomeVolumeSlider.value);
-    const masterGain = parseFloat(DomElements.masterGainSlider.value);
-    const finalMetronomeGain = metronomeVolumeAdjustment * masterGain; 
+    const metronomeGain = parseFloat(DomElements.metronomeVolumeSlider.value);
     
     const beatsPerMeasure = UIHelpers.getBeatsPerMeasure();
     const visualBeatIndex = AppState.currentBeatInSequenceForVisualMetronome % beatsPerMeasure;
@@ -33,13 +31,13 @@ function createMetronomeTick(time, isDownbeat) {
         }
     }, Math.max(0, visualChangeTime));
 
-    if (DomElements.metronomeAudioToggle.checked && finalMetronomeGain > 0) {
-        AudioCore.playTimedFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', finalMetronomeGain, 'metronome');
+    if (DomElements.metronomeAudioToggle.checked && metronomeGain > 0) {
+        AudioCore.playTimedFrequencies([frequency], tickHeldDuration, time, adsrTick, 'sine', metronomeGain, 'metronome');
     }
     AppState.setCurrentBeatInSequenceForVisualMetronome(AppState.currentBeatInSequenceForVisualMetronome + 1);
 }
 
-function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature, combinedSynthAndMasterGain) {
+function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorType, currentIndex, allChords, timeSignature, synthGain) {
     const quarterNoteDuration = 60 / bpm;
     const timeSigBeatFactor = UIHelpers.getBeatDurationFactorForTimeSignature(timeSignature);
     const actualSingleBeatDuration = quarterNoteDuration * timeSigBeatFactor;
@@ -48,7 +46,7 @@ function scheduleChord(chordObject, bpm, adsr, scheduleTime, currentOscillatorTy
     const frequencies = chordObject.frequencies;
 
     if (frequencies && frequencies.length > 0) {
-        AudioCore.playTimedFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, combinedSynthAndMasterGain, 'chord');
+        AudioCore.playTimedFrequencies(frequencies, noteHeldDuration, scheduleTime, adsr, currentOscillatorType, synthGain, 'chord');
     }
     
     const displayDelay = (scheduleTime - AppState.audioCtx.currentTime) * 1000;
@@ -111,9 +109,7 @@ function scheduleNextEvent(isSelectionPlayback) {
     const currentBPM = parseFloat(DomElements.bpmSlider.value);
     const currentOscillatorType = DomElements.oscillatorTypeEl.value;
     const currentTimeSignature = DomElements.timeSignatureSelect.value;
-    const currentMasterGain = parseFloat(DomElements.masterGainSlider.value);
     const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); 
-    const combinedGainForChord = currentSynthGain * currentMasterGain; 
 
     const currentADSR = {
         attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
@@ -139,7 +135,7 @@ function scheduleNextEvent(isSelectionPlayback) {
         currentOscillatorType,
         AppState.currentChordIndex, AppState.originalChords,
         currentTimeSignature,
-        combinedGainForChord 
+        currentSynthGain 
     );
 
     AppState.setNextEventTime(AppState.nextEventTime + durationOfThisChordSlot);

@@ -1,4 +1,10 @@
 export const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+export let masterGainNode = audioCtx.createGain();
+export let audioRecordStreamDestination = null;
+export let mediaRecorder = null;
+export let recordedAudioChunks = [];
+export let isRecording = false;
+
 export let activeOscillators = [];
 export let currentSchedulerTimeoutId = null;
 export let sequencePlaying = false;
@@ -16,3 +22,8 @@ export function setOriginalChords(chords) { originalChords = chords; }
 export function setCurrentChordIndex(index) { currentChordIndex = index; }
 export function setCurrentBeatInSequenceForVisualMetronome(beat) { currentBeatInSequenceForVisualMetronome = beat; }
 export function setNextEventTime(time) { nextEventTime = time; }
+
+export function setAudioRecordStreamDestination(dest) { audioRecordStreamDestination = dest; }
+export function setMediaRecorder(recorder) { mediaRecorder = recorder; }
+export function setRecordedAudioChunks(chunks) { recordedAudioChunks = chunks; }
+export function setIsRecording(recordingStatus) { isRecording = recordingStatus; }
