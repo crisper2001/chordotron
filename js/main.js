@@ -68,14 +68,14 @@ document.addEventListener('keydown', (event) => {
         if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key)) {
             event.preventDefault();
             if (!AppState.activeLiveKeys.has(event.key)) {
-                
+
                 AppState.activeLiveKeys.forEach(existingKey => {
-                     AudioCore.stopLiveFrequencies(existingKey); 
+                    AudioCore.stopLiveFrequencies(existingKey);
                 });
                 AppState.activeLiveKeys.clear();
 
                 AppState.activeLiveKeys.add(event.key);
-                UIHelpers.updateLivePlayingControlsDisabled(true); 
+                UIHelpers.updateLivePlayingControlsDisabled(true);
                 const triggerIndex = Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP[event.key];
                 const chordString = DomElements.triggerChordInputs[triggerIndex].value;
                 if (chordString && chordString.trim() !== "") {
@@ -83,11 +83,11 @@ document.addEventListener('keydown', (event) => {
                 }
             }
         }
-        return; 
+        return;
     }
 
     switch (event.key.toLowerCase()) {
-        case ' ': 
+        case ' ':
             event.preventDefault();
             DomElements.playStopButton.click();
             break;
@@ -95,20 +95,38 @@ document.addEventListener('keydown', (event) => {
             event.preventDefault();
             if (DomElements.loopToggle) {
                 DomElements.loopToggle.checked = !DomElements.loopToggle.checked;
-                DomElements.loopToggle.dispatchEvent(new Event('change')); 
+                DomElements.loopToggle.dispatchEvent(new Event('change'));
             }
             break;
         case 'm':
             event.preventDefault();
             if (DomElements.metronomeAudioToggle) {
                 DomElements.metronomeAudioToggle.checked = !DomElements.metronomeAudioToggle.checked;
-                DomElements.metronomeAudioToggle.dispatchEvent(new Event('change')); 
+                DomElements.metronomeAudioToggle.dispatchEvent(new Event('change'));
+            }
+            break;
+        case 'n':
+            event.preventDefault();
+            if (DomElements.restoreDefaultsButton) {
+                DomElements.restoreDefaultsButton.click();
+            }
+            break;
+        case 'o':
+            event.preventDefault();
+            if (DomElements.loadSettingsButton) {
+                DomElements.loadSettingsButton.click();
             }
             break;
         case 'r':
             event.preventDefault();
-            if(DomElements.recordButton) {
+            if (DomElements.recordButton) {
                 DomElements.recordButton.click();
+            }
+            break;
+        case 's':
+            event.preventDefault();
+            if (DomElements.saveSettingsButton) {
+                DomElements.saveSettingsButton.click();
             }
             break;
     }
@@ -119,13 +137,13 @@ document.addEventListener('keyup', (event) => {
     if (currentInputMode === 'livePlaying') {
         if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key)) {
             event.preventDefault();
-            if (AppState.activeLiveKeys.has(event.key)) { 
-                AudioCore.stopLiveFrequencies(event.key); 
+            if (AppState.activeLiveKeys.has(event.key)) {
+                AudioCore.stopLiveFrequencies(event.key);
                 AppState.activeLiveKeys.delete(event.key);
                 if (AppState.activeLiveKeys.size === 0) {
                     KeyboardUI.clearKeyboardHighlights();
-                    UIHelpers.updateChordContextDisplay(null, null); 
-                    UIHelpers.updateLivePlayingControlsDisabled(false); 
+                    UIHelpers.updateChordContextDisplay(null, null);
+                    UIHelpers.updateLivePlayingControlsDisabled(false);
                     UIHelpers.updateRecordButtonUI(AppState.isRecording);
                 }
             }
@@ -135,20 +153,20 @@ document.addEventListener('keyup', (event) => {
 
 function playLiveChord(chordString, keyIdentifier) {
     if (AppState.audioCtx.state === 'suspended') {
-        AppState.audioCtx.resume().catch(e => {});
+        AppState.audioCtx.resume().catch(e => { });
     }
 
     let mainChordPart = chordString;
-    let bassNoteString = null; 
+    let bassNoteString = null;
     const slashMatch = chordString.match(/^(.*)\/([A-Ga-g][#b]?)$/);
 
     if (slashMatch && slashMatch[1] && slashMatch[2]) {
         mainChordPart = slashMatch[1];
-        bassNoteString = slashMatch[2]; 
+        bassNoteString = slashMatch[2];
     }
-    
+
     const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(mainChordPart, REFERENCE_OCTAVE_FOR_LIVE_PLAYING);
-    
+
     const minMidiTarget = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const rangeLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     const maxMidiTarget = minMidiTarget + rangeLength - 1;
@@ -158,29 +176,29 @@ function playLiveChord(chordString, keyIdentifier) {
         rootNoteName,
         minMidiTarget,
         maxMidiTarget,
-        bassNoteString 
+        bassNoteString
     );
 
     if (voicingResult.frequencies && voicingResult.frequencies.length > 0) {
         const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
-        const currentADSR = { 
+        const currentADSR = {
             attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
             decay: Math.max(0.01, parseFloat(DomElements.decaySlider.value)),
             sustain: parseFloat(DomElements.sustainSlider.value),
-            release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value)) 
+            release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value))
         };
         const currentOscillatorType = DomElements.oscillatorTypeEl.value;
 
-        AudioCore.startLiveFrequencies( 
-            voicingResult.frequencies, 
-            AppState.audioCtx.currentTime, 
-            currentADSR, 
-            currentOscillatorType, 
+        AudioCore.startLiveFrequencies(
+            voicingResult.frequencies,
+            AppState.audioCtx.currentTime,
+            currentADSR,
+            currentOscillatorType,
             currentSynthGain,
             keyIdentifier
         );
-        
-        UIHelpers.updateChordContextDisplay(null, [{ name: chordString }]); 
+
+        UIHelpers.updateChordContextDisplay(null, [{ name: chordString }]);
         const midiNotesToHighlight = voicingResult.frequencies.map(freq => MusicTheory.frequencyToMidi(freq));
         KeyboardUI.highlightChordOnKeyboard(midiNotesToHighlight);
 
@@ -192,7 +210,7 @@ function playLiveChord(chordString, keyIdentifier) {
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new song and reset all settings to their defaults? This will also clear your autosaved project.")) {
-        if(AppState.isRecording) stopAudioRecording();
+        if (AppState.isRecording) stopAudioRecording();
         SettingsManager.clearAutosavedSettings();
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
         updateKeyboardRangeFromSliders();
@@ -205,7 +223,7 @@ DomElements.restoreDefaultsButton.addEventListener('click', () => {
 DomElements.saveSettingsButton.addEventListener('click', SettingsManager.saveSettingsToFile);
 DomElements.loadSettingsButton.addEventListener('click', () => DomElements.loadSettingsFile.click());
 DomElements.loadSettingsFile.addEventListener('change', (event) => {
-    if(AppState.isRecording) stopAudioRecording();
+    if (AppState.isRecording) stopAudioRecording();
     SettingsManager.loadSettingsFromFile(event);
     setTimeout(() => {
         updateKeyboardRangeFromSliders();
@@ -218,10 +236,10 @@ DomElements.loadSettingsFile.addEventListener('change', (event) => {
 function updateKeyboardRangeFromSliders() {
     let startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
-    
+
     const sliderMin = Constants.MIDI_C2;
-    const sliderMax = Constants.MIDI_B5 - (length -1);
-    
+    const sliderMax = Constants.MIDI_B5 - (length - 1);
+
     DomElements.rangeStartNoteSlider.max = sliderMax;
 
     if (startMidi > sliderMax) {
@@ -232,7 +250,7 @@ function updateKeyboardRangeFromSliders() {
         startMidi = sliderMin;
         DomElements.rangeStartNoteSlider.value = startMidi;
     }
-    
+
     const endMidi = startMidi + length - 1;
 
     UIHelpers.updatePitchRangeDisplay();
@@ -254,7 +272,7 @@ function updateADSRKnobValue(sliderElement, spanElement) {
 
 function updateADSRVisualizerFromSliders() {
     if (!DomElements.adsrCanvas) return;
-    
+
     updateADSRKnobValue(DomElements.attackSlider, DomElements.attackValueSpan);
     updateADSRKnobValue(DomElements.decaySlider, DomElements.decayValueSpan);
     updateADSRKnobValue(DomElements.sustainSlider, DomElements.sustainValueSpan);
@@ -267,14 +285,14 @@ function updateADSRVisualizerFromSliders() {
         sustain: parseFloat(DomElements.sustainSlider.value),
         release: parseFloat(DomElements.releaseSlider.value)
     };
-    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value); 
-    ADSRVisualizer.drawADSRGraph(adsrSettings, currentSynthGain); 
+    const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
+    ADSRVisualizer.drawADSRGraph(adsrSettings, currentSynthGain);
 }
 
 [
-    DomElements.attackSlider, 
-    DomElements.decaySlider, 
-    DomElements.sustainSlider, 
+    DomElements.attackSlider,
+    DomElements.decaySlider,
+    DomElements.sustainSlider,
     DomElements.releaseSlider,
     DomElements.synthGainSlider
 ].forEach(slider => {
@@ -287,7 +305,7 @@ DomElements.masterGainSlider.addEventListener('input', (event) => {
     if (AppState.masterGainNode) {
         AppState.masterGainNode.gain.setValueAtTime(parseFloat(event.target.value), AppState.audioCtx.currentTime);
     }
-    if(DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.textContent = parseFloat(event.target.value).toFixed(2);
+    if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.textContent = parseFloat(event.target.value).toFixed(2);
 });
 
 
@@ -298,7 +316,7 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
 
     if (!event.target.checked) {
         const now = AppState.audioCtx.currentTime;
-        
+
         AppState.activeOscillators.forEach(activeSound => {
             if (activeSound.type === 'metronome') {
                 try {
@@ -318,7 +336,7 @@ function startAudioRecording() {
         return;
     }
     if (AppState.audioCtx.state === 'suspended') {
-        AppState.audioCtx.resume().catch(e => {});
+        AppState.audioCtx.resume().catch(e => { });
     }
 
     AppState.setRecordedAudioChunks([]);
@@ -336,7 +354,7 @@ function startAudioRecording() {
         alert("Could not create MediaRecorder. Your browser might not support it or the MIME type.");
         return;
     }
-    
+
     AppState.mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
             AppState.recordedAudioChunks.push(event.data);
@@ -382,7 +400,7 @@ DomElements.downloadRecordingButton.addEventListener('click', () => {
     a.style.display = 'none';
     a.href = url;
     const now = new Date();
-    const timestamp = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2,'0')}${now.getDate().toString().padStart(2,'0')}-${now.getHours().toString().padStart(2,'0')}${now.getMinutes().toString().padStart(2,'0')}${now.getSeconds().toString().padStart(2,'0')}`;
+    const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}-${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
     a.download = `chordotron-recording-${timestamp}${fileExtension}`;
     document.body.appendChild(a);
     a.click();
@@ -396,7 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
     AppState.masterGainNode.connect(AppState.audioCtx.destination);
     if (AppState.audioCtx.createMediaStreamDestination) {
         AppState.setAudioRecordStreamDestination(AppState.audioCtx.createMediaStreamDestination());
-        if(AppState.audioRecordStreamDestination) {
+        if (AppState.audioRecordStreamDestination) {
             AppState.masterGainNode.connect(AppState.audioRecordStreamDestination);
         }
     } else {
@@ -415,33 +433,33 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         UIHelpers.applySettingsToUI(SettingsManager.collectCurrentSettings());
     }
-    
+
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
     UIHelpers.updateUIModeVisuals(currentInputMode);
-    
+
     if (!loadedFromAutosave) {
-         SettingsManager.autosaveCurrentSettings(); 
+        SettingsManager.autosaveCurrentSettings();
     }
 
     KeyboardUI.initKeyboard();
     updateKeyboardRangeFromSliders();
 
-    ADSRVisualizer.initADSRVisualizer(); 
-    updateADSRVisualizerFromSliders(); 
+    ADSRVisualizer.initADSRVisualizer();
+    updateADSRVisualizerFromSliders();
 
-    initHelpGuideModalLogic(); 
+    initHelpGuideModalLogic();
     attachAutosaveListeners();
     UIHelpers.setupSliderListeners();
 
 
     if (DomElements.masterGainSlider && AppState.masterGainNode) {
-         AppState.masterGainNode.gain.value = parseFloat(DomElements.masterGainSlider.value);
+        AppState.masterGainNode.gain.value = parseFloat(DomElements.masterGainSlider.value);
     }
 
 
     function initAudioContext() {
         if (AppState.audioCtx.state === 'suspended') {
-            AppState.audioCtx.resume().catch(e => {});
+            AppState.audioCtx.resume().catch(e => { });
         }
     }
     document.body.addEventListener('click', initAudioContext, { once: true });
