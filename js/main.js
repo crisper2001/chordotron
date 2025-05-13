@@ -9,7 +9,9 @@ import * as MusicTheory from './utils/music-theory.js';
 import * as ADSRVisualizer from './ui/adsr-visualizer.js';
 import * as AudioCore from './audio/audio-core.js';
 import { initHelpGuideModalLogic } from './ui/modal-handler.js';
+import * as MidiWriter from './utils/midi-writer.js';
 
+const REFERENCE_OCTAVE_FOR_PARSING = 2; // Used for initial parsing before voicing
 const REFERENCE_OCTAVE_FOR_LIVE_PLAYING = 2;
 
 function attachAutosaveListeners() {
@@ -65,17 +67,20 @@ document.addEventListener('keydown', (event) => {
     const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
 
     if (currentInputMode === 'livePlaying') {
-        if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key)) {
+        if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key) && !event.repeat) { // Added !event.repeat
             event.preventDefault();
             if (!AppState.activeLiveKeys.has(event.key)) {
 
-                AppState.activeLiveKeys.forEach(existingKey => {
-                    AudioCore.stopLiveFrequencies(existingKey);
-                });
-                AppState.activeLiveKeys.clear();
+                // Option: Stop other keys if you want monophonic live input
+                // AppState.activeLiveKeys.forEach(existingKey => {
+                //     AudioCore.stopLiveFrequencies(existingKey);
+                // });
+                // AppState.activeLiveKeys.clear();
 
                 AppState.activeLiveKeys.add(event.key);
-                UIHelpers.updateLivePlayingControlsDisabled(true);
+                UIHelpers.updateLivePlayingControlsDisabled(true); // Disable most controls
+                UIHelpers.updateRecordButtonUI(AppState.isRecording); // Update record button based on new state
+
                 const triggerIndex = Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP[event.key];
                 const chordString = DomElements.triggerChordInputs[triggerIndex].value;
                 if (chordString && chordString.trim() !== "") {
@@ -95,37 +100,37 @@ document.addEventListener('keydown', (event) => {
             event.preventDefault();
             if (DomElements.loopToggle) {
                 DomElements.loopToggle.checked = !DomElements.loopToggle.checked;
-                DomElements.loopToggle.dispatchEvent(new Event('change'));
+                DomElements.loopToggle.dispatchEvent(new Event('change')); // Triggers autosave
             }
             break;
         case 'm':
             event.preventDefault();
             if (DomElements.metronomeAudioToggle) {
                 DomElements.metronomeAudioToggle.checked = !DomElements.metronomeAudioToggle.checked;
-                DomElements.metronomeAudioToggle.dispatchEvent(new Event('change'));
+                DomElements.metronomeAudioToggle.dispatchEvent(new Event('change')); // Triggers autosave
             }
             break;
         case 'n':
             event.preventDefault();
-            if (DomElements.restoreDefaultsButton) {
+            if (DomElements.restoreDefaultsButton && !DomElements.restoreDefaultsButton.disabled) {
                 DomElements.restoreDefaultsButton.click();
             }
             break;
         case 'o':
             event.preventDefault();
-            if (DomElements.loadSettingsButton) {
+            if (DomElements.loadSettingsButton && !DomElements.loadSettingsButton.disabled) {
                 DomElements.loadSettingsButton.click();
             }
             break;
         case 'r':
             event.preventDefault();
-            if (DomElements.recordButton) {
+            if (DomElements.recordButton && !DomElements.recordButton.disabled) {
                 DomElements.recordButton.click();
             }
             break;
         case 's':
             event.preventDefault();
-            if (DomElements.saveSettingsButton) {
+            if (DomElements.saveSettingsButton && !DomElements.saveSettingsButton.disabled) {
                 DomElements.saveSettingsButton.click();
             }
             break;
@@ -138,13 +143,13 @@ document.addEventListener('keyup', (event) => {
         if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key)) {
             event.preventDefault();
             if (AppState.activeLiveKeys.has(event.key)) {
-                AudioCore.stopLiveFrequencies(event.key);
+                AudioCore.stopLiveFrequencies(event.key); // Uses UI release slider value by default
                 AppState.activeLiveKeys.delete(event.key);
                 if (AppState.activeLiveKeys.size === 0) {
                     KeyboardUI.clearKeyboardHighlights();
-                    UIHelpers.updateChordContextDisplay(null, null);
-                    UIHelpers.updateLivePlayingControlsDisabled(false);
-                    UIHelpers.updateRecordButtonUI(AppState.isRecording);
+                    UIHelpers.updateChordContextDisplay(null, null); // Reset live display
+                    UIHelpers.updateLivePlayingControlsDisabled(false); // Re-enable controls
+                    UIHelpers.updateRecordButtonUI(AppState.isRecording); // Update record button
                 }
             }
         }
@@ -153,7 +158,7 @@ document.addEventListener('keyup', (event) => {
 
 function playLiveChord(chordString, keyIdentifier) {
     if (AppState.audioCtx.state === 'suspended') {
-        AppState.audioCtx.resume().catch(e => { });
+        AppState.audioCtx.resume().catch(e => console.error("Audio context resume failed", e));
     }
 
     let mainChordPart = chordString;
@@ -181,24 +186,24 @@ function playLiveChord(chordString, keyIdentifier) {
 
     if (voicingResult.frequencies && voicingResult.frequencies.length > 0) {
         const currentSynthGain = parseFloat(DomElements.synthGainSlider.value);
-        const currentADSR = {
+        const currentADSR = { // ADSR for live playing should be quick attack, no decay to sustain, and release from slider
             attack: Math.max(0.01, parseFloat(DomElements.attackSlider.value)),
-            decay: Math.max(0.01, parseFloat(DomElements.decaySlider.value)),
-            sustain: parseFloat(DomElements.sustainSlider.value),
-            release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value))
+            decay: 0, // For live hold, decay effectively doesn't happen before release
+            sustain: 1.0, // Full sustain level relative to targetGainValue
+            release: Math.max(0.01, parseFloat(DomElements.releaseSlider.value)) // Release is handled by stopLiveFrequencies
         };
         const currentOscillatorType = DomElements.oscillatorTypeEl.value;
 
         AudioCore.startLiveFrequencies(
             voicingResult.frequencies,
             AppState.audioCtx.currentTime,
-            currentADSR,
+            currentADSR, // This ADSR is for the 'noteOn' part
             currentOscillatorType,
             currentSynthGain,
             keyIdentifier
         );
 
-        UIHelpers.updateChordContextDisplay(null, [{ name: chordString }]);
+        UIHelpers.updateChordContextDisplay(null, [{ name: chordString }]); // Display the played chord
         const midiNotesToHighlight = voicingResult.frequencies.map(freq => MusicTheory.frequencyToMidi(freq));
         KeyboardUI.highlightChordOnKeyboard(midiNotesToHighlight);
 
@@ -210,19 +215,22 @@ function playLiveChord(chordString, keyIdentifier) {
 
 DomElements.restoreDefaultsButton.addEventListener('click', () => {
     if (confirm("Are you sure you want to start a new song and reset all settings to their defaults? This will also clear your autosaved project.")) {
-        if (AppState.isRecording) stopAudioRecording();
+        if (AppState.isRecording) stopAudioRecording(); // Ensure recording is stopped
         
         SettingsManager.clearAutosavedSettings();
         AppState.setRecordedAudioChunks([]);
         AppState.setFinalRecordingDuration(null);
         AppState.setRecordingStartTime(null);
+        if(AppState.recordingDurationUpdaterId) clearInterval(AppState.recordingDurationUpdaterId);
+        AppState.setRecordingDurationUpdaterId(null);
 
 
-        UIHelpers.applySettingsToUI(Constants.defaultSettings);
-        updateKeyboardRangeFromSliders();
-        updateADSRVisualizerFromSliders();
-        UIHelpers.updateUIModeVisuals(Constants.defaultSettings.inputMode);
+        UIHelpers.applySettingsToUI(Constants.defaultSettings); // This now also updates slider max and calls updatePitchRangeDisplay
+        // updateKeyboardRangeFromSliders(); // Called by applySettingsToUI via updatePitchRangeDisplay if needed
+        // updateADSRVisualizerFromSliders(); // Called by applySettingsToUI
+        // UIHelpers.updateUIModeVisuals(Constants.defaultSettings.inputMode); // Called by applySettingsToUI
         SettingsManager.autosaveCurrentSettings();
+        UIHelpers.updateRecordButtonUI(false); // Ensure record UI is reset
     }
 });
 
@@ -234,39 +242,205 @@ DomElements.loadSettingsFile.addEventListener('change', (event) => {
     AppState.setRecordedAudioChunks([]);
     AppState.setFinalRecordingDuration(null);
     AppState.setRecordingStartTime(null);
+    if(AppState.recordingDurationUpdaterId) clearInterval(AppState.recordingDurationUpdaterId);
+    AppState.setRecordingDurationUpdaterId(null);
 
-    SettingsManager.loadSettingsFromFile(event);
+
+    SettingsManager.loadSettingsFromFile(event); // This calls applySettingsToUI
+    // applySettingsToUI handles updating keyboard range, ADSR viz, and UI mode visuals.
+    // Timeout might still be good if applySettingsToUI has async aspects or relies on DOM fully updating.
     setTimeout(() => {
-        updateKeyboardRangeFromSliders();
-        updateADSRVisualizerFromSliders();
+        // These should be correctly set by applySettingsToUI via its internal calls
+        // updateKeyboardRangeFromSliders(); 
+        // updateADSRVisualizerFromSliders();
         const currentMode = document.querySelector('input[name="inputMode"]:checked').value;
-        UIHelpers.updateUIModeVisuals(currentMode);
-    }, 50);
+        UIHelpers.updateUIModeVisuals(currentMode); // Re-affirm visuals for the loaded mode
+        UIHelpers.updateRecordButtonUI(false); // Ensure record UI is reset
+    }, 50); 
 });
+
+
+async function handleMidiExport() {
+    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+    if (currentInputMode === 'livePlaying') {
+        alert("MIDI export is not available in Live Playing mode.");
+        return;
+    }
+    if (AppState.sequencePlaying) {
+        alert("Please stop playback before exporting MIDI.");
+        return;
+    }
+
+    const bpm = parseFloat(DomElements.bpmSlider.value);
+    const timeSignature = DomElements.timeSignatureSelect.value;
+    const defaultBeatsPerChord = UIHelpers.getBeatsPerMeasure(); 
+
+    let chordSourceString;
+    let activeTextarea;
+
+    if (currentInputMode === 'chords') {
+        activeTextarea = DomElements.chordInputEl;
+    } else { // degrees
+        activeTextarea = DomElements.scaleDegreeInputEl;
+    }
+
+    const selectionStart = activeTextarea.selectionStart;
+    const selectionEnd = activeTextarea.selectionEnd;
+
+    if (selectionStart !== selectionEnd && selectionEnd > selectionStart) {
+        chordSourceString = activeTextarea.value.substring(selectionStart, selectionEnd);
+    } else {
+        chordSourceString = activeTextarea.value;
+    }
+    
+    if (!chordSourceString.trim()) {
+        alert("No chords to export. Please enter some chords in the active input area.");
+        return;
+    }
+
+    let parsedChords;
+    if (currentInputMode === 'chords') {
+        parsedChords = MusicTheory.parseDirectChordString(chordSourceString, defaultBeatsPerChord);
+    } else { // degrees
+        const currentSongKey = DomElements.songKeySelect.value;
+        const currentKeyModeVal = DomElements.keyModeSelect.value;
+        parsedChords = MusicTheory.parseScaleDegreeString(chordSourceString, currentSongKey, currentKeyModeVal, defaultBeatsPerChord);
+    }
+
+    const erroredChords = parsedChords.filter(c => c.error);
+    if (erroredChords.length > 0) {
+        if (!confirm(`Warning: ${erroredChords.length} chord(s) could not be parsed (e.g., "${erroredChords[0].originalInputToken}") and will be skipped in the MIDI export. Continue?`)) {
+            return;
+        }
+        parsedChords = parsedChords.filter(c => !c.error);
+    }
+    
+    if (parsedChords.length === 0) {
+        alert("No valid chords found to export after parsing.");
+        return;
+    }
+    
+    const minMidiTarget = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    const rangeLength = parseInt(DomElements.rangeLengthSlider.value, 10);
+    const maxMidiTarget = minMidiTarget + rangeLength - 1;
+    
+    let rangeIsValid = true;
+    if (minMidiTarget < Constants.MIDI_A0 || 
+        maxMidiTarget > Constants.MIDI_C8 || 
+        minMidiTarget >= maxMidiTarget ||
+        rangeLength < Constants.SEMITONES_IN_OCTAVE) {
+        rangeIsValid = false; 
+        console.warn("Pitch range for MIDI export is invalid or too small. Voicing will use a default broad range.");
+    }
+
+    const voicedChords = parsedChords.map(chordObj => {
+        const { frequencies: initialFrequencies, rootNoteName } = MusicTheory.parseChordNameToFrequencies(chordObj.name, REFERENCE_OCTAVE_FOR_PARSING);
+        
+        const currentMinMidi = rangeIsValid ? minMidiTarget : null; // Pass null if range invalid for wider voicing
+        const currentMaxMidi = rangeIsValid ? maxMidiTarget : null;
+        
+        const voicingResult = MusicTheory.voiceFrequenciesInRange(
+            initialFrequencies, 
+            rootNoteName, 
+            currentMinMidi, 
+            currentMaxMidi, 
+            chordObj.bassNoteName 
+        );
+
+        return { 
+            ...chordObj, 
+            frequencies: voicingResult.frequencies 
+        };
+    });
+
+    const nonEmptyVoicedChords = voicedChords.filter(vc => vc.frequencies && vc.frequencies.length > 0);
+    if (nonEmptyVoicedChords.length === 0) {
+        alert("No notes could be voiced for the MIDI export within the current pitch range or due to chord errors. Adjust range or chords.");
+        return;
+    }
+    if (nonEmptyVoicedChords.length < voicedChords.length) {
+        alert(`Warning: ${voicedChords.length - nonEmptyVoicedChords.length} chord(s) resulted in no playable notes after voicing (e.g., due to pitch range constraints) and will be silent in the MIDI export.`);
+    }
+
+    const suggestedFileNameStem = "chordotron-export";
+    const midiBlob = MidiWriter.exportProgressionToMidi(nonEmptyVoicedChords, bpm, timeSignature, suggestedFileNameStem);
+
+    if (!midiBlob) {
+        alert("Failed to generate MIDI data.");
+        return;
+    }
+
+    try {
+        if (window.showSaveFilePicker) {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: `${suggestedFileNameStem}.mid`,
+                types: [{
+                    description: 'MIDI Files',
+                    accept: { 'audio/midi': ['.mid', '.midi'] },
+                }],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(midiBlob);
+            await writable.close();
+        } else {
+            let fileNameFromPrompt = prompt("Enter a file name for your MIDI export (e.g., my_song):", suggestedFileNameStem);
+            if (fileNameFromPrompt === null) return; 
+            if (fileNameFromPrompt.trim() === "") fileNameFromPrompt = suggestedFileNameStem;
+            if (!fileNameFromPrompt.toLowerCase().endsWith(".mid") && !fileNameFromPrompt.toLowerCase().endsWith(".midi")) {
+                fileNameFromPrompt += ".mid";
+            }
+            fileNameFromPrompt = fileNameFromPrompt.replace(/[^a-z0-9._-\s]/gi, '_').replace(/\s+/g, '_');
+
+            const url = URL.createObjectURL(midiBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileNameFromPrompt;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    } catch (err) {
+        if (err.name === 'AbortError') {
+            // User cancelled the file picker
+        } else {
+            console.error("Error saving MIDI file:", err);
+            alert(`Could not save MIDI file: ${err.message}`);
+        }
+    }
+}
+
+if (DomElements.exportMidiButton) {
+    DomElements.exportMidiButton.addEventListener('click', handleMidiExport);
+}
+
 
 function updateKeyboardRangeFromSliders() {
     let startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
 
-    const sliderMin = Constants.MIDI_C2;
-    const sliderMax = Constants.MIDI_B5 - (length - 1);
+    const sliderMin = Constants.MIDI_C2; 
+    const sliderMaxPossibleStart = Constants.MIDI_B5 - (length - 1); 
 
-    DomElements.rangeStartNoteSlider.max = sliderMax;
+    DomElements.rangeStartNoteSlider.min = String(sliderMin); // Ensure min is C2
+    DomElements.rangeStartNoteSlider.max = String(sliderMaxPossibleStart);
 
-    if (startMidi > sliderMax) {
-        startMidi = sliderMax;
-        DomElements.rangeStartNoteSlider.value = startMidi;
+
+    if (startMidi > sliderMaxPossibleStart) {
+        startMidi = sliderMaxPossibleStart;
+        DomElements.rangeStartNoteSlider.value = String(startMidi);
     }
     if (startMidi < sliderMin) {
         startMidi = sliderMin;
-        DomElements.rangeStartNoteSlider.value = startMidi;
+        DomElements.rangeStartNoteSlider.value = String(startMidi);
     }
-
+    
     const endMidi = startMidi + length - 1;
 
-    UIHelpers.updatePitchRangeDisplay();
+    UIHelpers.updatePitchRangeDisplay(); // This will read the possibly adjusted slider value
     KeyboardUI.highlightRangeOnKeyboard(startMidi, endMidi);
 }
+
 
 if (DomElements.rangeStartNoteSlider) {
     DomElements.rangeStartNoteSlider.addEventListener('input', updateKeyboardRangeFromSliders);
@@ -325,17 +499,22 @@ DomElements.metronomeAudioToggle.addEventListener('change', (event) => {
     if (currentInputMode === 'livePlaying') return;
     if (!AppState.sequencePlaying) return;
 
-    if (!event.target.checked) {
+    if (!event.target.checked) { // If metronome is turned OFF while playing
         const now = AppState.audioCtx.currentTime;
-
-        AppState.activeOscillators.forEach(activeSound => {
+        // Filter out metronome sounds and stop them
+        AppState.activeOscillators = AppState.activeOscillators.filter(activeSound => {
             if (activeSound.type === 'metronome') {
                 try {
                     activeSound.gainNode.gain.cancelScheduledValues(now);
-                    activeSound.gainNode.gain.linearRampToValueAtTime(0, now + 0.02);
+                    activeSound.gainNode.gain.setValueAtTime(activeSound.gainNode.gain.value, now); // Hold current value
+                    activeSound.gainNode.gain.linearRampToValueAtTime(0, now + 0.02); // Quick fade
+                    activeSound.oscillator.stop(now + 0.03);
                 } catch (e) {
+                    // console.warn("Error stopping metronome sound:", e);
                 }
+                return false; // Remove from activeOscillators
             }
+            return true; // Keep other sounds
         });
     }
 });
@@ -354,7 +533,7 @@ function startAudioRecording() {
         return;
     }
     if (AppState.audioCtx.state === 'suspended') {
-        AppState.audioCtx.resume().catch(e => { });
+        AppState.audioCtx.resume().catch(e => console.error("Audio context resume failed", e) );
     }
 
     AppState.setRecordedAudioChunks([]);
@@ -363,13 +542,16 @@ function startAudioRecording() {
         let mediaRecorderInstance;
         if (MediaRecorder.isTypeSupported(options.mimeType)) {
             mediaRecorderInstance = new MediaRecorder(AppState.audioRecordStreamDestination.stream, options);
-        } else {
+        } else if (MediaRecorder.isTypeSupported('audio/wav')) { // Fallback to WAV if webm/opus not supported
+            mediaRecorderInstance = new MediaRecorder(AppState.audioRecordStreamDestination.stream, { mimeType: 'audio/wav'});
+        }
+         else { // Further fallback
             mediaRecorderInstance = new MediaRecorder(AppState.audioRecordStreamDestination.stream);
         }
         AppState.setMediaRecorder(mediaRecorderInstance);
     } catch (e) {
         console.error("Error creating MediaRecorder:", e);
-        alert("Could not create MediaRecorder. Your browser might not support it or the MIME type.");
+        alert("Could not create MediaRecorder. Your browser might not support it or the MIME type. Try WAV or Opus.");
         return;
     }
 
@@ -379,44 +561,62 @@ function startAudioRecording() {
         }
     };
     AppState.mediaRecorder.onstop = () => {
-        // finalRecordingDuration is set in stopAudioRecording
-        UIHelpers.updateRecordButtonUI(false); // Update UI to show final duration
+        AppState.setIsRecording(false); // Ensure state is updated
+        if (AppState.recordingStartTime) { // Calculate final duration if not already set by explicit stop
+            const duration = (Date.now() - AppState.recordingStartTime) / 1000;
+            AppState.setFinalRecordingDuration(duration);
+            AppState.setRecordingStartTime(null);
+        }
+        if (AppState.recordingDurationUpdaterId) {
+            clearInterval(AppState.recordingDurationUpdaterId);
+            AppState.setRecordingDurationUpdaterId(null);
+        }
+        UIHelpers.updateRecordButtonUI(false); // Update UI to show final duration and button state
     };
-    AppState.mediaRecorder.start();
+    AppState.mediaRecorder.onerror = (event) => {
+        console.error("MediaRecorder error:", event.error);
+        alert(`Recording error: ${event.error.name} - ${event.error.message}`);
+        stopAudioRecording(); // Attempt to clean up
+    };
+
+    try {
+        AppState.mediaRecorder.start();
+    } catch (e) {
+        console.error("Error starting MediaRecorder:", e);
+        alert(`Could not start recording: ${e.message}. Check microphone permissions or browser compatibility.`);
+        AppState.setMediaRecorder(null); // Clear faulty recorder
+        return;
+    }
+
     AppState.setIsRecording(true);
     AppState.setRecordingStartTime(Date.now());
-    AppState.setFinalRecordingDuration(null);
+    AppState.setFinalRecordingDuration(null); // Reset final duration
 
     if (AppState.recordingDurationUpdaterId) {
         clearInterval(AppState.recordingDurationUpdaterId);
     }
-    AppState.setRecordingDurationUpdaterId(setInterval(updateLiveRecordingDurationDisplay, 100)); // Update every 100ms
-    updateLiveRecordingDurationDisplay(); // Call once immediately
+    AppState.setRecordingDurationUpdaterId(setInterval(updateLiveRecordingDurationDisplay, 100)); 
+    updateLiveRecordingDurationDisplay(); 
     UIHelpers.updateRecordButtonUI(true);
 }
 
 function stopAudioRecording() {
     if (AppState.mediaRecorder && AppState.mediaRecorder.state !== "inactive") {
-        AppState.mediaRecorder.stop(); // This will trigger onstop handler
+        AppState.mediaRecorder.stop(); // This will trigger onstop handler eventually
+    } else {
+        // If recorder was already inactive or null, manually update state and UI
+        AppState.setIsRecording(false);
+        if (AppState.recordingDurationUpdaterId) {
+            clearInterval(AppState.recordingDurationUpdaterId);
+            AppState.setRecordingDurationUpdaterId(null);
+        }
+        if (AppState.recordingStartTime && AppState.finalRecordingDuration === null) { // If it was 'running' conceptually but recorder failed/stopped early
+            const duration = (Date.now() - AppState.recordingStartTime) / 1000;
+            AppState.setFinalRecordingDuration(duration);
+        }
+        AppState.setRecordingStartTime(null);
+        UIHelpers.updateRecordButtonUI(false); // Ensure UI reflects stopped state
     }
-    AppState.setIsRecording(false); // Set recording state to false
-
-    if (AppState.recordingDurationUpdaterId) {
-        clearInterval(AppState.recordingDurationUpdaterId);
-        AppState.setRecordingDurationUpdaterId(null);
-    }
-
-    if (AppState.recordingStartTime) {
-        const duration = (Date.now() - AppState.recordingStartTime) / 1000;
-        AppState.setFinalRecordingDuration(duration);
-    }
-    AppState.setRecordingStartTime(null); // Reset start time
-
-    // UI update for button states and duration display is handled by mediaRecorder.onstop
-    // or if onstop is not called (e.g. mediaRecorder was already inactive),
-    // we might need an explicit call here. However, relying on onstop is cleaner.
-    // If mediaRecorder was null or inactive, UI should already reflect !isRecording.
-    // If it was active, onstop will call updateRecordButtonUI(false).
 }
 
 DomElements.recordButton.addEventListener('click', () => {
@@ -433,7 +633,8 @@ DomElements.downloadRecordingButton.addEventListener('click', () => {
         return;
     }
     const mimeType = (AppState.mediaRecorder && AppState.mediaRecorder.mimeType) ? AppState.mediaRecorder.mimeType : 'audio/webm';
-    const fileExtension = mimeType.includes('wav') ? '.wav' : '.webm';
+    const fileExtension = mimeType.includes('wav') ? '.wav' : (mimeType.includes('opus') || mimeType.includes('webm') ? '.webm' : '.aud');
+
 
     const blob = new Blob(AppState.recordedAudioChunks, { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -447,8 +648,7 @@ DomElements.downloadRecordingButton.addEventListener('click', () => {
     a.click();
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
-    // After download, the state (chunks, final duration) remains, so UI doesn't change until new recording or reset
-    UIHelpers.updateRecordButtonUI(AppState.isRecording); // isRecording is false here
+    UIHelpers.updateRecordButtonUI(AppState.isRecording); 
 });
 
 
@@ -461,48 +661,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     } else {
         console.warn("MediaStreamDestinationNode not supported. Recording will not be available.");
-        DomElements.recordButton.disabled = true;
-        DomElements.recordButton.title = "Recording not supported by your browser.";
+        if(DomElements.recordButton) {
+            DomElements.recordButton.disabled = true;
+            DomElements.recordButton.title = "Recording not supported by your browser.";
+        }
+        if (DomElements.downloadRecordingButton) DomElements.downloadRecordingButton.disabled = true;
     }
 
-    AppState.setFinalRecordingDuration(null); // Ensure it's null at app start
+    AppState.setFinalRecordingDuration(null); 
 
-    const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10);
-    DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (initialLength - 1);
+    // const initialLength = parseInt(DomElements.rangeLengthSlider.value, 10); // applySettingsToUI handles this
+    // DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (initialLength - 1);
 
-    const loadedFromAutosave = SettingsManager.loadAutosavedSettings();
+    const loadedFromAutosave = SettingsManager.loadAutosavedSettings(); // Calls applySettingsToUI
     if (!loadedFromAutosave) {
         UIHelpers.applySettingsToUI(Constants.defaultSettings);
-    } else {
-        UIHelpers.applySettingsToUI(SettingsManager.collectCurrentSettings());
-    }
+    } 
+    // else {
+    //     UIHelpers.applySettingsToUI(SettingsManager.collectCurrentSettings()); //This is redundant as loadAutosaved calls apply
+    // }
 
-    const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
-    UIHelpers.updateUIModeVisuals(currentInputMode);
+    // const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value; // Done by applySettingsToUI
+    // UIHelpers.updateUIModeVisuals(currentInputMode);
 
-    if (!loadedFromAutosave) {
+    if (!loadedFromAutosave) { // Autosave defaults if no autosave was loaded
         SettingsManager.autosaveCurrentSettings();
     }
 
     KeyboardUI.initKeyboard();
-    updateKeyboardRangeFromSliders();
+    updateKeyboardRangeFromSliders(); // Call after settings are applied to set initial keyboard range display
 
-    ADSRVisualizer.initADSRVisualizer();
-    updateADSRVisualizerFromSliders();
+    ADSRVisualizer.initADSRVisualizer(); // Calls drawADSRGraph with initial values from DOM
+    // updateADSRVisualizerFromSliders(); // Called by initADSRVisualizer if canvas exists
 
     initHelpGuideModalLogic();
     attachAutosaveListeners();
-    UIHelpers.setupSliderListeners();
+    UIHelpers.setupSliderListeners(); // Sets up listeners for BPM, Metronome Vol (Master gain listener is separate)
 
-
+    // Ensure master gain node reflects initial slider value from loaded/default settings
     if (DomElements.masterGainSlider && AppState.masterGainNode) {
         AppState.masterGainNode.gain.value = parseFloat(DomElements.masterGainSlider.value);
     }
-
+    UIHelpers.updateRecordButtonUI(AppState.isRecording); // Set initial record button state
 
     function initAudioContext() {
         if (AppState.audioCtx.state === 'suspended') {
-            AppState.audioCtx.resume().catch(e => { });
+            AppState.audioCtx.resume().catch(e => console.error("Audio context resume failed on user interaction", e));
         }
     }
     document.body.addEventListener('click', initAudioContext, { once: true });

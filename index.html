@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chordotron</title>
+    <title>🎹 Chordotron</title>
     <link rel="stylesheet" href="css/_reset.css">
     <link rel="stylesheet" href="css/_base.css">
     <link rel="stylesheet" href="css/_layout.css">
@@ -18,8 +18,8 @@
     <div class="app-container">
         <header>
             <h1>Chordotron</h1>
-            <div class="byline">by Crisper (<span style="font-size: xx-small;">and Gemini 2.5 Pro</span>)</div>
-            <div class="version">v1.0.0 Pre-release 4</div>
+            <div class="byline">by Crisper <span style="display: none;">and Gemini 2.5 Pro</span></div>
+            <div class="version">v1.0.0</div>
         </header>
 
 
@@ -30,7 +30,7 @@
                     <button id="loadSettingsButton" title="Load song settings from a file">📁 Load</button>
                     <input type="file" id="loadSettingsFile" accept=".json" style="display: none;">
                     <button id="saveSettingsButton" title="Save current song settings">💾 Save</button>
-
+                    <button id="exportMidiButton" title="Export progression to MIDI file">🎹 Export MIDI</button> <!-- Added -->
                     <button id="recordButton" title="Record audio output">⏺️ Record</button><button
                         id="downloadRecordingButton" title="Download last recording">📥
                         Download Rec</button>
@@ -330,7 +330,7 @@
                             </li>
                             <li>Press and hold the corresponding key on your computer keyboard (1, 2, ..., 0, -, =) to
                                 play the chord. The chord will sound as long as the key is held.</li>
-                            <li>In this mode, BPM, Time Signature, Loop, Play/Stop, and Metronome controls are disabled.
+                            <li>In this mode, BPM, Time Signature, Loop, Play/Stop, Metronome controls, and MIDI Export are disabled.
                             </li>
                         </ul>
                     </li>
@@ -346,8 +346,8 @@
                     <li><strong>⏱️ Timing (Chord/Degree Modes Only):</strong>
                         <ul>
                             <li><strong>BPM:</strong> Beats Per Minute.</li>
-                            <li><strong>Time Signature:</strong> e.g., 4/4, 3/4, 6/8. Affects default chord duration and
-                                metronome.</li>
+                            <li><strong>Time Signature:</strong> e.g., 4/4, 3/4, 6/8. Affects default chord duration,
+                                metronome, and MIDI export.</li>
                         </ul>
                     </li>
                     <li><strong>🎹 Synth (All Modes):</strong>
@@ -367,7 +367,7 @@
                     <li><strong>↔️ Pitch Range (All Modes):</strong>
                         <ul>
                             <li><strong>Range Start & Length:</strong> Defines the allowed MIDI note range for voiced
-                                chords. Chords are voiced to fit within these boundaries.</li>
+                                chords. Chords are voiced to fit within these boundaries for both audio playback and MIDI export.</li>
                         </ul>
                     </li>
                 </ul>
@@ -399,6 +399,7 @@
                     <li><strong>💾 Save:</strong> Save your current inputs and all parameter settings as a
                         <code>.json</code> file.
                     </li>
+                    <li><strong>🎹 Export MIDI (Chord/Degree Modes Only):</strong> Generates a <code>.mid</code> file from the current progression in the active input area (Chord Names or Scale Degrees), using current BPM, Time Signature, and Pitch Range settings.</li>
                     <li><strong>⏺️ Record:</strong> Start/Stop audio recording of the app's output. Shows live recording
                         duration.</li>
                     <li><strong>📥 Download Rec:</strong> Appears after stopping a recording, allows downloading the
@@ -420,7 +421,7 @@
                     <li><strong><code>O</code> key:</strong> Load Settings.</li>
                     <li><strong><code>S</code> key:</strong> Save Settings.</li>
                     <li>You can play a <strong>selection</strong> of your input by highlighting text in the Chord/Degree
-                        input area before pressing Play.</li>
+                        input area before pressing Play. This selection will also be used for MIDI export if active.</li>
                 </ul>
             </div>
         </div>

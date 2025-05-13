@@ -6,41 +6,60 @@ import * as MusicTheory from '../utils/music-theory.js';
 import * as ADSRVisualizer from './adsr-visualizer.js';
 
 function clearInputErrorStates() {
+    // Placeholder if needed in the future
 }
 
 export function setControlsDisabled(disabled) {
     DomElements.mainControlsFieldset.disabled = disabled;
+    // appActionsFieldset contains New, Load, Save, Export MIDI, Record, Download, Help
+    // If overall 'disabled' (e.g. sequence playing), the whole fieldset is disabled.
     if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = disabled;
     if (DomElements.parametersControlsFieldset) DomElements.parametersControlsFieldset.disabled = disabled;
 
+    // Individual button overrides IF the fieldset itself is NOT disabled by the 'disabled' flag.
+    if (!disabled) { // If the fieldsets are generally enabled
+        const currentInputMode = document.querySelector('input[name="inputMode"]:checked').value;
+        if (DomElements.exportMidiButton) {
+            DomElements.exportMidiButton.disabled = (currentInputMode === 'livePlaying');
+        }
+    } else { // If fieldsets are disabled (e.g. sequence playing), ensure these buttons are also marked disabled
+         if (DomElements.exportMidiButton) DomElements.exportMidiButton.disabled = true;
+    }
+
+    // Record button is special: can be enabled to STOP recording even if other controls are 'disabled'.
     if (DomElements.recordButton) {
-        // If main controls are disabled (e.g., sequence playing),
-        // record button is disabled UNLESS already recording (to allow stopping).
         DomElements.recordButton.disabled = disabled && !AppState.isRecording;
     }
-
+    // Download button logic
     if (DomElements.downloadRecordingButton) {
-        if (disabled) { // If overall controls are disabled
-            DomElements.downloadRecordingButton.disabled = true;
-        } else { // Overall controls enabled, decide based on recording state
-            const hasChunks = AppState.recordedAudioChunks.length > 0;
-            DomElements.downloadRecordingButton.disabled = AppState.isRecording || !hasChunks;
+        const hasChunks = AppState.recordedAudioChunks.length > 0;
+        // Disabled if:
+        // 1. Currently recording
+        // 2. No chunks available
+        // 3. Overall controls are disabled (e.g. sequence playing) AND not currently recording (if recording, it's handled by recordButton state)
+        let downloadDisabled = AppState.isRecording || !hasChunks;
+        if (disabled && !AppState.isRecording) { // If overall controls disabled and not recording, definitely disable download
+            downloadDisabled = true;
         }
+        DomElements.downloadRecordingButton.disabled = downloadDisabled;
     }
 
-
-    if (!disabled) {
-        DomElements.timingParametersGroup.classList.remove('disabled-in-live-mode');
-        DomElements.soundOptionsGroup.classList.remove('disabled-in-live-mode');
-        if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
-        const masterGainLabel = document.querySelector('label[for="masterGain"]');
-        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
-        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+    if (!disabled) { // Re-enable parts that might have been specifically disabled for other reasons if overall 'disabled' is false
+        const currentInputModeCheck = document.querySelector('input[name="inputMode"]:checked').value;
+        if (currentInputModeCheck !== 'livePlaying') {
+            DomElements.timingParametersGroup.classList.remove('disabled-in-live-mode');
+            DomElements.soundOptionsGroup.classList.remove('disabled-in-live-mode');
+            if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
+            const masterGainLabel = document.querySelector('label[for="masterGain"]');
+            if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
+            if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+        }
     }
 }
 
 export function updateLivePlayingControlsDisabled(isKeyDown) {
-    DomElements.mainControlsFieldset.disabled = isKeyDown;
+    DomElements.mainControlsFieldset.disabled = isKeyDown; // Input textareas
+    if (DomElements.appActionsFieldset) DomElements.appActionsFieldset.disabled = isKeyDown; // Disables New, Load, Save, Export MIDI, Help
 
     if (DomElements.parametersControlsFieldset) {
         DomElements.parametersControlsFieldset.disabled = isKeyDown;
@@ -51,35 +70,20 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
         }
     }
 
+    // Master gain should always be controllable unless parametersControlsFieldset is hard disabled
     if (DomElements.masterGainSlider) {
-        DomElements.masterGainSlider.disabled = false; 
+        DomElements.masterGainSlider.disabled = isKeyDown && DomElements.parametersControlsFieldset.disabled;
         const masterGainLabel = document.querySelector('label[for="masterGain"]');
-        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
-        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+        if (masterGainLabel) masterGainLabel.classList.toggle('disabled-text', DomElements.masterGainSlider.disabled);
+        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.toggle('disabled-text', DomElements.masterGainSlider.disabled);
     }
-
-    const actionButtons = [
-        DomElements.restoreDefaultsButton,
-        DomElements.loadSettingsButton,
-        DomElements.saveSettingsButton,
-        DomElements.helpButton,
-        // DomElements.downloadRecordingButton // Handled by updateRecordButtonUI
-    ];
-
-    actionButtons.forEach(button => {
-        if (button) {
-            button.disabled = isKeyDown;
-        }
-    });
     
-    // Record and Download buttons are managed by updateRecordButtonUI based on AppState.isRecording
-    // but their general enabled/disabled state due to keydown needs to be considered.
+    // Record and Download buttons specific handling during live key press
     if (DomElements.recordButton) {
-        if (isKeyDown) { // If a key is down for live playing
-            DomElements.recordButton.disabled = !AppState.isRecording; // Can only stop recording, not start
+        if (isKeyDown) { 
+            DomElements.recordButton.disabled = !AppState.isRecording; // Can only stop recording
         } else {
-            // When keys are up, record button state is determined by updateRecordButtonUI.
-            // updateRecordButtonUI is called after this function in relevant flows (mode switch, keyup).
+            // When keys are up, record button state is determined by updateRecordButtonUI called later.
         }
     }
     if (DomElements.downloadRecordingButton) {
@@ -89,7 +93,7 @@ export function updateLivePlayingControlsDisabled(isKeyDown) {
             // updateRecordButtonUI handles this
         }
     }
-    // It's better to call updateRecordButtonUI after this function if mode changes or key is released.
+    // Ensure updateRecordButtonUI is called after this if mode changes or key is released.
 }
 
 export function updateUIModeVisuals(mode) {
@@ -100,9 +104,12 @@ export function updateUIModeVisuals(mode) {
     const isLivePlayingMode = mode === 'livePlaying';
 
     DomElements.timingParametersGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode);
-    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode); // This also affects Metronome Vol
+    DomElements.soundOptionsGroup.classList.toggle('disabled-in-live-mode', isLivePlayingMode); 
     DomElements.playbackFooter.classList.toggle('disabled-for-live-playing', isLivePlayingMode);
 
+    if (DomElements.exportMidiButton) { 
+        DomElements.exportMidiButton.disabled = isLivePlayingMode;
+    }
 
     if (DomElements.parametersControlsFieldset) {
         DomElements.parametersControlsFieldset.classList.remove('live-playing-active');
@@ -114,13 +121,14 @@ export function updateUIModeVisuals(mode) {
         DomElements.nextChordDisplay.innerHTML = "-- ⏭️";
         if (DomElements.beatIndicatorContainer) DomElements.beatIndicatorContainer.innerHTML = "";
         if (DomElements.currentChordDisplay) DomElements.currentChordDisplay.innerHTML = "🎹 Ready";
-        updateLivePlayingControlsDisabled(false); // Reset general disabled states
-        // Master gain should always be controllable if its group isn't fully disabled
-        if (DomElements.masterGainSlider) DomElements.masterGainSlider.disabled = false;
-        const masterGainLabel = document.querySelector('label[for="masterGain"]');
-        if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
-        if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
-
+        updateLivePlayingControlsDisabled(false); 
+        // Ensure master gain is controllable (unless its group is fully disabled by live-playing-active logic)
+        if (DomElements.masterGainSlider) {
+            DomElements.masterGainSlider.disabled = false; 
+            const masterGainLabel = document.querySelector('label[for="masterGain"]');
+            if (masterGainLabel) masterGainLabel.classList.remove('disabled-text');
+            if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.classList.remove('disabled-text');
+        }
     } else { // Chord or Degree mode
         updateBeatIndicatorsVisibility(getBeatsPerMeasure());
         if (!AppState.sequencePlaying) {
@@ -128,9 +136,13 @@ export function updateUIModeVisuals(mode) {
             DomElements.currentChordDisplay.innerHTML = "🎶 Playing: --";
             DomElements.nextChordDisplay.innerHTML = "Next: -- ⏭️";
         }
-        setControlsDisabled(AppState.sequencePlaying); // Set general disabled states
+        // setControlsDisabled handles disabling appActionsFieldset (and thus exportMidiButton)
+        // if AppState.sequencePlaying is true.
+        // If sequencePlaying is false, appActionsFieldset will be enabled,
+        // and exportMidiButton will be enabled (since isLivePlayingMode is false here, checked by setControlsDisabled internal logic).
+        setControlsDisabled(AppState.sequencePlaying);
     }
-    updateRecordButtonUI(AppState.isRecording); // Update record button and duration display for all modes
+    updateRecordButtonUI(AppState.isRecording); 
 }
 
 export function formatDuration(totalSeconds) {
@@ -144,6 +156,8 @@ export function formatDuration(totalSeconds) {
 export function updateRecordButtonUI(isRecording) {
     const currentMode = document.querySelector('input[name="inputMode"]:checked').value;
     const isLivePlayingAndKeyHeld = currentMode === 'livePlaying' && AppState.activeLiveKeys.size > 0;
+    const isSequencePlayingNonLive = (currentMode === 'chords' || currentMode === 'degrees') && AppState.sequencePlaying;
+
 
     if (DomElements.recordButton) {
         if (isRecording) {
@@ -155,20 +169,14 @@ export function updateRecordButtonUI(isRecording) {
             DomElements.recordButton.textContent = '⏺️ Record';
             DomElements.recordButton.classList.remove('recording');
             DomElements.recordButton.title = "Record audio output";
-            
             // Disable record button if sequence is playing (non-live modes)
             // or if a live key is currently held down.
-            if (((currentMode === 'chords' || currentMode === 'degrees') && AppState.sequencePlaying) || isLivePlayingAndKeyHeld) {
-                DomElements.recordButton.disabled = true; 
-            }
-            else {
-                DomElements.recordButton.disabled = false; 
-            }
+            DomElements.recordButton.disabled = isSequencePlayingNonLive || isLivePlayingAndKeyHeld;
         }
     }
     if (DomElements.downloadRecordingButton) {
         const hasChunks = AppState.recordedAudioChunks.length > 0;
-        DomElements.downloadRecordingButton.disabled = isRecording || !hasChunks || isLivePlayingAndKeyHeld;
+        DomElements.downloadRecordingButton.disabled = isRecording || !hasChunks || isLivePlayingAndKeyHeld || isSequencePlayingNonLive;
     }
 
     if (DomElements.recordingDurationDisplay) {
@@ -210,11 +218,12 @@ export function updatePitchRangeDisplay() {
     const startMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
     const length = parseInt(DomElements.rangeLengthSlider.value, 10);
 
-    const clampedStartMidi = Math.max(Constants.MIDI_C2, Math.min(startMidi, Constants.MIDI_C5));
-    if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi)) {
-        DomElements.rangeStartNoteSlider.value = clampedStartMidi;
-    }
-    const finalStartMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10);
+    // This clamping might be too aggressive or redundant if slider min/max are well-managed
+    // const clampedStartMidi = Math.max(Constants.MIDI_C2, Math.min(startMidi, Constants.MIDI_C5));
+    // if (clampedStartMidi !== startMidi && DomElements.rangeStartNoteSlider.value !== String(clampedStartMidi)) {
+    //     DomElements.rangeStartNoteSlider.value = clampedStartMidi;
+    // }
+    const finalStartMidi = parseInt(DomElements.rangeStartNoteSlider.value, 10); // Read after potential adjustment by slider max
     const endMidi = finalStartMidi + length - 1;
 
     const startNoteName = MusicTheory.midiToNoteNameWithOctave(finalStartMidi) || 'N/A';
@@ -233,11 +242,11 @@ export function getBeatsPerMeasure() {
 export function getBeatDurationFactorForTimeSignature(timeSignatureString) {
     const denominator = parseInt(timeSignatureString.split('/')[1], 10);
     switch (denominator) {
-        case 2: return 2;
-        case 4: return 1;
-        case 8: return 0.5;
-        case 16: return 0.25;
-        default: return 1;
+        case 2: return 2;   // Beat is a half note (2 quarter notes)
+        case 4: return 1;   // Beat is a quarter note
+        case 8: return 0.5; // Beat is an eighth note (0.5 quarter notes)
+        case 16: return 0.25;// Beat is a sixteenth note (0.25 quarter notes)
+        default: return 1;  // Default to quarter note if time signature is unusual
     }
 }
 
@@ -279,15 +288,14 @@ export function formatChordForDisplay(chordNameToFormat) {
 
     const replaceSymbols = (name) => {
         let tempName = name;
-        if (Constants.DISPLAY_SYMBOL_MAP) {
-            for (const key in Constants.DISPLAY_SYMBOL_MAP) {
-                if (tempName.includes(key)) {
-                }
-            }
-        }
-        tempName = tempName.replace(/h7/g, 'ø7');
-        tempName = tempName.replace(/(?<![A-Ga-g])o7/g, '°7');
-        tempName = tempName.replace(/(?<![A-Ga-g])o(?!n)(?!r)(?!c)/g, '°');
+        // Enhanced replacement to avoid partial matches like 'ghost' -> 'gh°st'
+        tempName = tempName.replace(/\bm7b5\b/g, 'ø7'); // Minor 7 flat 5 often shown as half-diminished
+        tempName = tempName.replace(/\bh7\b/g, 'ø7'); 
+        
+        // Match 'o' or 'dim' followed by 7 or not, ensuring it's not part of a word
+        tempName = tempName.replace(/\bo7\b|\bdim7\b/g, '°7');
+        tempName = tempName.replace(/\bo\b(?![\w#b])|\bdim\b(?![\w#b])/g, '°'); // 'o' or 'dim' not followed by more letters/symbols
+
         return tempName;
     };
 
@@ -300,30 +308,23 @@ export function formatChordForDisplay(chordNameToFormat) {
         const rootDisplay = normalizeDisplayNoteName(rootMatch[1]);
         let qualityDisplay = rootMatch[2];
 
-        if (qualityDisplay === 'M') {
-            qualityDisplay = '';
-        } else if (qualityDisplay === 'm') {
+        // Normalize common quality variations before symbol replacement
+        if (qualityDisplay.toUpperCase() === 'M' || qualityDisplay.toLowerCase() === 'maj') {
+            qualityDisplay = ''; // Major is often just the root
+        } else if (qualityDisplay.toLowerCase() === 'min') {
+            qualityDisplay = 'm';
         } else {
             qualityDisplay = qualityDisplay
                 .replace(/MAJ7/ig, 'maj7')
-                .replace(/MIN7/ig, 'min7')
+                .replace(/MIN7/ig, 'm7') // Ensure m7 for min7
                 .replace(/MAJOR/ig, '')
                 .replace(/MINOR/ig, 'm')
                 .replace(/MAJ(?!7)/ig, '')
                 .replace(/MIN(?!7)/ig, 'm')
                 .replace(/DIMINISHED/ig, 'dim')
-                .replace(/DIM/ig, 'dim')
                 .replace(/AUGMENTED/ig, 'aug')
-                .replace(/AUG/ig, 'aug')
-                .replace(/SUSPENDED/ig, 'sus')
-                .replace(/SUS/ig, 'sus');
-
-            if (qualityDisplay.toLowerCase() === 'maj') {
-                qualityDisplay = '';
-            }
-            else if (qualityDisplay.toLowerCase() === 'min') {
-                qualityDisplay = 'm';
-            }
+                .replace(/SUSPENDED/ig, 'sus');
+            // No specific replacement for DIM/AUG/SUS here, rely on replaceSymbols or original input.
         }
         mainPart = rootDisplay + qualityDisplay;
     }
@@ -360,12 +361,18 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
         const looksLikeScaleDegree = chordObject.originalInputToken && /^(b|#)?[IVXLCDMivxlcdm1-7]/i.test(chordObject.originalInputToken.trim().split('/')[0]);
 
         if (chordObject.originalInputToken && !looksLikeScaleDegree && !chordObject.error) {
-            if (chordObject.bassNoteName && chordObject.wasSlashPlayed === false) {
-                displayName = chordObject.originalInputToken.split('/')[0].replace(/\(\d+\)$/, '');
+            // For direct chord input, prefer original token (without beats)
+            // but handle slash chords correctly based on whether they were actually played as slash
+            const originalWithoutBeats = chordObject.originalInputToken.replace(/\(\d+\)$/, '');
+            if (chordObject.bassNoteName && !chordObject.wasSlashPlayed && originalWithoutBeats.includes('/')) {
+                // Original had a slash, but it wasn't played (e.g., bass note out of range)
+                // Display only the main part of the original token
+                displayName = originalWithoutBeats.split('/')[0];
             } else {
-                displayName = chordObject.originalInputToken.replace(/\(\d+\)$/, '');
+                displayName = originalWithoutBeats;
             }
         } else if (chordObject.name && chordObject.name !== '?') {
+            // For scale degrees or if original token was an error/not preferred
             const mainChordMatch = chordObject.name.match(/^([A-Ga-g][#b]?)(.*)$/);
             if (mainChordMatch) {
                 const root = normalizeDisplayNoteName(mainChordMatch[1]);
@@ -387,23 +394,23 @@ export function updateChordContextDisplay(currentIndex, chordsArray) {
         return formatChordForDisplay(displayName);
     };
 
-    const currentChordObject = chordsArray[currentIndex];
+    const currentChordObject = (chordsArray && currentIndex >= 0 && currentIndex < chordsArray.length) ? chordsArray[currentIndex] : null;
     DomElements.currentChordDisplay.innerHTML = `🎶 Playing: ${formatNameForUI(currentChordObject)}`;
 
     if (currentIndex > 0 && chordsArray[currentIndex - 1]) {
         const prevChordObject = chordsArray[currentIndex - 1];
         DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${formatNameForUI(prevChordObject)}`;
-    } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
+    } else if (DomElements.loopToggle.checked && chordsArray && chordsArray.length > 1 && currentChordObject) {
         const prevChordObject = chordsArray[chordsArray.length - 1];
         DomElements.prevChordDisplay.innerHTML = `⏮️ Prev: ${formatNameForUI(prevChordObject)}`;
     } else {
         DomElements.prevChordDisplay.innerHTML = "⏮️ Prev: --";
     }
 
-    if (currentIndex < chordsArray.length - 1 && chordsArray[currentIndex + 1]) {
+    if (currentIndex >=0 && currentIndex < chordsArray.length - 1 && chordsArray[currentIndex + 1]) {
         const nextChordObject = chordsArray[currentIndex + 1];
         DomElements.nextChordDisplay.innerHTML = `Next: ${formatNameForUI(nextChordObject)} ⏭️`;
-    } else if (DomElements.loopToggle.checked && chordsArray.length > 1 && currentChordObject) {
+    } else if (DomElements.loopToggle.checked && chordsArray && chordsArray.length > 1 && currentChordObject) {
         const nextChordObject = chordsArray[0];
         DomElements.nextChordDisplay.innerHTML = `Next: ${formatNameForUI(nextChordObject)} ⏭️`;
     } else {
@@ -423,6 +430,7 @@ export function applySettingsToUI(settings) {
     clearInputErrorStates();
 
     DomElements.bpmSlider.value = settings.bpm;
+    if (DomElements.bpmValueSpan) DomElements.bpmValueSpan.textContent = settings.bpm;
     DomElements.attackSlider.value = settings.attack;
     DomElements.decaySlider.value = settings.decay;
     DomElements.sustainSlider.value = settings.sustain;
@@ -430,7 +438,10 @@ export function applySettingsToUI(settings) {
     DomElements.timeSignatureSelect.value = settings.timeSignature;
     DomElements.oscillatorTypeEl.value = settings.oscillatorType;
     DomElements.metronomeVolumeSlider.value = settings.metronomeVolume;
+    if (DomElements.metronomeVolumeValueSpan) DomElements.metronomeVolumeValueSpan.textContent = parseFloat(settings.metronomeVolume).toFixed(2);
+    
     DomElements.masterGainSlider.value = settings.masterGain ?? 0.5;
+    if (DomElements.masterGainValueSpan) DomElements.masterGainValueSpan.textContent = parseFloat(DomElements.masterGainSlider.value).toFixed(2);
     if (AppState.masterGainNode) AppState.masterGainNode.gain.value = parseFloat(DomElements.masterGainSlider.value);
 
     DomElements.synthGainSlider.value = settings.synthGain ?? 0.5;
@@ -452,19 +463,21 @@ export function applySettingsToUI(settings) {
         });
     }
 
+    // Update slider max for rangeStart based on length (must be done before updatePitchRangeDisplay)
     const currentLength = parseInt(DomElements.rangeLengthSlider.value, 10);
     DomElements.rangeStartNoteSlider.max = Constants.MIDI_B5 - (currentLength - 1);
     if (parseInt(DomElements.rangeStartNoteSlider.value, 10) > parseInt(DomElements.rangeStartNoteSlider.max, 10)) {
         DomElements.rangeStartNoteSlider.value = DomElements.rangeStartNoteSlider.max;
     }
 
-    updatePitchRangeDisplay();
+    updatePitchRangeDisplay(); // Updates spans for range sliders and current range display
 
     const modeToSelect = settings.inputMode || "chords";
     document.querySelector(`input[name="inputMode"][value="${modeToSelect}"]`).checked = true;
 
 
-    setupSliderListeners();
+    // setupSliderListeners(); // No, this adds listeners. We just need to set values and update spans.
+    // Spans for BPM, Metronome Vol, Master Gain, Range are handled above or by updatePitchRangeDisplay.
 
     updateKnobValueSpan(DomElements.attackSlider, DomElements.attackValueSpan);
     updateKnobValueSpan(DomElements.decaySlider, DomElements.decayValueSpan);
@@ -472,7 +485,7 @@ export function applySettingsToUI(settings) {
     updateKnobValueSpan(DomElements.releaseSlider, DomElements.releaseValueSpan);
     updateKnobValueSpan(DomElements.synthGainSlider, DomElements.synthGainValueSpan);
 
-    updateUIModeVisuals(modeToSelect);
+    updateUIModeVisuals(modeToSelect); // This will call setControlsDisabled and updateBeatIndicators
 
 
     if (!AppState.sequencePlaying && modeToSelect !== "livePlaying") {

@@ -1,3 +1,4 @@
+// dom-elements.js
 export const mainControlsFieldset = document.getElementById('mainControlsFieldset');
 export const appActionsFieldset = document.getElementById('appActionsFieldset');
 export const parametersControlsFieldset = document.getElementById('parametersControlsFieldset');
@@ -40,6 +41,7 @@ export const loadSettingsButton = document.getElementById('loadSettingsButton');
 export const recordButton = document.getElementById('recordButton');
 export const downloadRecordingButton = document.getElementById('downloadRecordingButton');
 export const recordingDurationDisplay = document.getElementById('recordingDurationDisplay');
+export const exportMidiButton = document.getElementById('exportMidiButton'); // Added
 
 
 export const rangeStartNoteSlider = document.getElementById('rangeStartNoteSlider');
