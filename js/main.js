@@ -69,23 +69,24 @@ document.addEventListener('keydown', (event) => {
     if (currentInputMode === 'livePlaying') {
         if (Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP.hasOwnProperty(event.key) && !event.repeat) { // Added !event.repeat
             event.preventDefault();
-            if (!AppState.activeLiveKeys.has(event.key)) {
 
-                // Option: Stop other keys if you want monophonic live input
-                // AppState.activeLiveKeys.forEach(existingKey => {
-                //     AudioCore.stopLiveFrequencies(existingKey);
-                // });
-                // AppState.activeLiveKeys.clear();
-
-                AppState.activeLiveKeys.add(event.key);
-                UIHelpers.updateLivePlayingControlsDisabled(true); // Disable most controls
-                UIHelpers.updateRecordButtonUI(AppState.isRecording); // Update record button based on new state
-
-                const triggerIndex = Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP[event.key];
-                const chordString = DomElements.triggerChordInputs[triggerIndex].value;
-                if (chordString && chordString.trim() !== "") {
-                    playLiveChord(chordString, event.key);
+            // Stop any other currently playing live keys
+            AppState.activeLiveKeys.forEach(existingKey => {
+                if (existingKey !== event.key) {
+                    AudioCore.stopLiveFrequencies(existingKey); // Natural release for previously held notes
                 }
+            });
+            AppState.activeLiveKeys.clear(); // Clear all keys from the set
+
+            // Now, add the new key and play it
+            AppState.activeLiveKeys.add(event.key);
+            UIHelpers.updateLivePlayingControlsDisabled(true);
+            UIHelpers.updateRecordButtonUI(AppState.isRecording);
+
+            const triggerIndex = Constants.KEY_TO_LIVE_PLAYING_INDEX_MAP[event.key];
+            const chordString = DomElements.triggerChordInputs[triggerIndex].value;
+            if (chordString && chordString.trim() !== "") {
+                playLiveChord(chordString, event.key);
             }
         }
         return;
