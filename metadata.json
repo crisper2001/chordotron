@@ -1,0 +1,8 @@
+{
+  "name": "Chordotron",
+  "description": "A web-based chord progression synthesizer, scale-degree composer, live chord trigger instrument, and MIDI/audio exporter.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
